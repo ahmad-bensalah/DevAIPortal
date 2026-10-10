@@ -8,7 +8,7 @@ on:
 
 jobs:
   validate-and-test:
-    name: Validation, Tests & Drift Check
+    name: Lint, Test, Helm & Policy Verification
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -20,8 +20,21 @@ jobs:
           node-version: 20
           cache: npm
 
+      - name: Setup Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: v3.16.2
+
+      - name: Setup Kyverno CLI
+        uses: kyverno/action-install-cli@v0.2.0
+        with:
+          release-version: v1.12.5
+
       - name: Install dependencies
         run: npm ci
+
+      - name: TypeScript Typecheck
+        run: npx tsc --noEmit
 
       - name: Validate Example Config against Schema
         run: npx tsx scripts/validate-config.ts .
@@ -32,7 +45,13 @@ jobs:
       - name: Check Platform & Kyverno Policy Drift
         run: npx tsx scripts/render-platform.ts --check
 
-      - name: Run Test Suite (Vitest)
+      - name: Helm Lint
+        run: helm lint charts/environment
+
+      - name: Run Kyverno Policy Test Suites
+        run: kyverno test policies/tests/
+
+      - name: Run Vitest Suites (Schema, Helm Guardrails, Adapters, Eval)
         run: npx vitest run
 
   security-scan:
