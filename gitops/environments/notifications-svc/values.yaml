@@ -1,0 +1,11 @@
+name: notifications-svc
+blueprint: internal-service
+owner: bob@company.com
+team: messaging
+size: medium
+image: ghcr.io/company/notifications:v2.1.0
+port: 9090
+ingress: false
+internetEgress: false
+expiresAt: "2026-10-15T12:00:00Z"
+requestId: "req-valid-internal-01"
