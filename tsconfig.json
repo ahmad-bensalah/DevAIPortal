@@ -15,9 +15,9 @@
     "declarationMap": true,
     "sourceMap": true,
     "paths": {
-      "@devportal/agent": ["./agent/src/index.ts"],
-      "@devportal/adapters/*": ["./adapters/*/src/index.ts"],
-      "@devportal/config": ["./config/index.ts"]
+      "@devaiportal/agent": ["./agent/src/index.ts"],
+      "@devaiportal/adapters/*": ["./adapters/*/src/index.ts"],
+      "@devaiportal/config": ["./config/index.ts"]
     }
   },
   "include": [

@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
-# DevPortal IA — Preflight Doctor
+# DevAIPortal — Preflight Doctor
 # Performs one real call per configured adapter and validates prerequisites.
 # Usage: make doctor
 set -uo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
-CONFIG_FILE="$PROJECT_ROOT/devportal.config.yaml"
+CONFIG_FILE="$PROJECT_ROOT/devaiportal.config.yaml"
 ENV_FILE="$PROJECT_ROOT/.env"
 
 # Load .env if present
@@ -49,7 +49,7 @@ print(v)
   fi
 }
 
-echo -e "\n${BOLD}DevPortal IA — Preflight Check${NC}\n"
+echo -e "\n${BOLD}DevAIPortal — Preflight Check${NC}\n"
 
 # ─── 1. Prerequisites ────────────────────────────────────────
 echo -e "${CYAN}Prerequisites${NC}"
@@ -246,7 +246,7 @@ esac
 # ─── 4. Kubernetes ───────────────────────────────────────────
 echo -e "\n${CYAN}Kubernetes${NC}"
 
-CLUSTER_CTX=$(get_config ".cluster.context" 2>/dev/null || echo "kind-devportal")
+CLUSTER_CTX=$(get_config ".cluster.context" 2>/dev/null || echo "kind-devaiportal")
 
 if kubectl cluster-info --context "$CLUSTER_CTX" &>/dev/null; then
   pass "Cluster reachable: $CLUSTER_CTX"

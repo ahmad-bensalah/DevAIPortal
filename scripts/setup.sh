@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
-# DevPortal IA — Interactive Setup Wizard
-# Generates devportal.config.yaml and .env from user choices.
+# DevAIPortal — Interactive Setup Wizard
+# Generates devaiportal.config.yaml and .env from user choices.
 # Usage: make setup
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
-CONFIG_FILE="$PROJECT_ROOT/devportal.config.yaml"
+CONFIG_FILE="$PROJECT_ROOT/devaiportal.config.yaml"
 ENV_FILE="$PROJECT_ROOT/.env"
 
 # Terminal colors
@@ -65,8 +65,8 @@ prompt_secret() {
 }
 
 # ─── Start ─────────────────────────────────────────────────────
-echo -e "\n${BOLD}DevPortal IA — Setup Wizard${NC}"
-echo "This wizard generates devportal.config.yaml and .env"
+echo -e "\n${BOLD}DevAIPortal — Setup Wizard${NC}"
+echo "This wizard generates devaiportal.config.yaml and .env"
 echo ""
 
 if [[ -f "$CONFIG_FILE" ]]; then
@@ -87,7 +87,7 @@ prompt_choice SECRET_ADAPTER "Secrets:"      env kubernetes external-secrets
 # ─── Cluster ───────────────────────────────────────────────────
 header "Cluster Settings"
 
-prompt_value CLUSTER_CONTEXT  "kubectl context name"  "kind-devportal"
+prompt_value CLUSTER_CONTEXT  "kubectl context name"  "kind-devaiportal"
 prompt_value BASE_DOMAIN      "Base domain for Ingress" "dev.local"
 prompt_value INGRESS_CLASS    "Ingress class"          "nginx"
 prompt_value INGRESS_NS       "Ingress controller namespace" "ingress-nginx"
@@ -134,7 +134,7 @@ esac
 case "$GIT_ADAPTER" in
   github|gitlab|gitea)
     prompt_secret GIT_TOKEN "Git access token"
-    prompt_value GIT_REPO "Repository (owner/name)" "devportal/devportal-ia"
+    prompt_value GIT_REPO "Repository (owner/name)" "devaiportal/devaiportal"
     ENV_CONTENT+="GIT_TOKEN=$GIT_TOKEN\n"
     ;;
 esac
@@ -152,7 +152,7 @@ case "$NOTIFY_ADAPTER" in
     prompt_value SMTP_HOST "SMTP host" "smtp.example.com"
     prompt_value SMTP_PORT "SMTP port" "587"
     prompt_secret SMTP_PASS "SMTP password"
-    prompt_value SMTP_FROM "From address" "devportal@example.com"
+    prompt_value SMTP_FROM "From address" "devaiportal@example.com"
     prompt_value SMTP_TO   "To address"   "team@example.com"
     ENV_CONTENT+="SMTP_HOST=$SMTP_HOST\nSMTP_PORT=$SMTP_PORT\nSMTP_PASS=$SMTP_PASS\n"
     ENV_CONTENT+="SMTP_FROM=$SMTP_FROM\nSMTP_TO=$SMTP_TO\n"
@@ -163,7 +163,7 @@ case "$NOTIFY_ADAPTER" in
 esac
 
 # Determine GIT_REPO for config (may have been set above or use default)
-GIT_REPO="${GIT_REPO:-devportal/devportal-ia}"
+GIT_REPO="${GIT_REPO:-devaiportal/devaiportal}"
 
 # Determine LLM model
 case "$LLM_ADAPTER" in

@@ -49,13 +49,13 @@ export function identityMapperContractTests(
 identityMapperContractTests('static-user', () => new StaticUserMapper());
 
 describe('StaticUserMapper', () => {
-  const mapper = new StaticUserMapper('devportal-users');
+  const mapper = new StaticUserMapper('devaiportal-users');
 
   it('includes the default group', async () => {
     const result = await mapper.resolveGroups('alice@example.com');
     expect(result.ok).toBe(true);
     if (result.ok) {
-      expect(result.groups).toContain('devportal-users');
+      expect(result.groups).toContain('devaiportal-users');
     }
   });
 

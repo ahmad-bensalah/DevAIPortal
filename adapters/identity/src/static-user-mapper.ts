@@ -14,7 +14,7 @@ export class StaticUserMapper implements IdentityMapper {
 
   private readonly defaultGroup: string;
 
-  constructor(defaultGroup = 'devportal-users') {
+  constructor(defaultGroup = 'devaiportal-users') {
     this.defaultGroup = defaultGroup;
   }
 

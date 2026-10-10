@@ -4,12 +4,12 @@ import { join } from 'node:path';
 import { loadConfig, ConfigError } from '../config/index.js';
 
 const TEST_DIR = join(import.meta.dirname, '..', '__test_config_tmp__');
-const SCHEMA_SRC = join(import.meta.dirname, '..', 'devportal.config.schema.json');
+const SCHEMA_SRC = join(import.meta.dirname, '..', 'devaiportal.config.schema.json');
 
 describe('loadConfig', () => {
   beforeEach(() => {
     mkdirSync(TEST_DIR, { recursive: true });
-    copyFileSync(SCHEMA_SRC, join(TEST_DIR, 'devportal.config.schema.json'));
+    copyFileSync(SCHEMA_SRC, join(TEST_DIR, 'devaiportal.config.schema.json'));
   });
 
   afterEach(() => {
@@ -19,7 +19,7 @@ describe('loadConfig', () => {
   function writeConfig(obj: Record<string, unknown>) {
     // Write as YAML-compatible JSON (valid YAML)
     const yaml = JSON.stringify(obj, null, 2);
-    writeFileSync(join(TEST_DIR, 'devportal.config.yaml'), yaml);
+    writeFileSync(join(TEST_DIR, 'devaiportal.config.yaml'), yaml);
   }
 
   const VALID_CONFIG = {
@@ -31,7 +31,7 @@ describe('loadConfig', () => {
       secrets: 'env',
     },
     cluster: {
-      context: 'kind-devportal',
+      context: 'kind-devaiportal',
       baseDomain: 'dev.local',
       ingressClass: 'nginx',
     },
@@ -52,12 +52,12 @@ describe('loadConfig', () => {
     writeConfig(VALID_CONFIG);
     const config = loadConfig(TEST_DIR);
     expect(config.adapters.llm).toBe('mock');
-    expect(config.cluster.context).toBe('kind-devportal');
+    expect(config.cluster.context).toBe('kind-devaiportal');
     expect(config.sizes.small.cpu).toBe('500m');
   });
 
   it('throws ConfigError when config file is missing', () => {
-    rmSync(join(TEST_DIR, 'devportal.config.yaml'), { force: true });
+    rmSync(join(TEST_DIR, 'devaiportal.config.yaml'), { force: true });
     expect(() => loadConfig(TEST_DIR)).toThrow(ConfigError);
     expect(() => loadConfig(TEST_DIR)).toThrow('Config file not found');
   });

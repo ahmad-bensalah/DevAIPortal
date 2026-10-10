@@ -1,4 +1,4 @@
-# DevPortal IA
+# DevAIPortal
 
 Conversational self-service portal for ephemeral Kubernetes environments. A developer asks in natural language for an environment; an LLM agent extracts validated parameters; Helm renders manifests; a Git PR carries the change; ArgoCD deploys it; Kyverno enforces policy and cleans up.
 
@@ -17,7 +17,7 @@ Conversational self-service portal for ephemeral Kubernetes environments. A deve
 
 ```bash
 # 1. Clone
-git clone <repo-url> && cd devportal-ia
+git clone <repo-url> && cd devaiportal
 
 # 2. Install dependencies
 make deps
@@ -45,9 +45,9 @@ This creates a kind cluster, installs all components with mock/local adapters, a
 
 ## Configuration
 
-- `devportal.config.yaml` — non-secret choices (adapter selection, cluster, quotas, TTL)
+- `devaiportal.config.yaml` — non-secret choices (adapter selection, cluster, quotas, TTL)
 - `.env` — secrets only (API keys, tokens, webhooks)
-- `devportal.config.schema.json` — JSON Schema for config validation
+- `devaiportal.config.schema.json` — JSON Schema for config validation
 
 See `.env.example` for all variables with documentation on where to obtain each credential and its minimum required scopes.
 

@@ -1,6 +1,6 @@
-# DevPortal IA Configuration
-# Copy to devportal.config.yaml and edit.
-# Schema: devportal.config.schema.json
+# DevAIPortal Configuration
+# Copy to devaiportal.config.yaml and edit.
+# Schema: devaiportal.config.schema.json
 # Secrets go in .env, not here.
 
 adapters:
@@ -11,7 +11,7 @@ adapters:
   secrets: env              # env | kubernetes | external-secrets
 
 cluster:
-  context: kind-devportal    # kubectl context pointing at target cluster
+  context: kind-devaiportal    # kubectl context pointing at target cluster
   baseDomain: dev.local      # base domain for Ingress hosts (<name>.dev.local)
   ingressClass: nginx        # ingress class installed in cluster
   ingressNamespace: ingress-nginx
@@ -52,6 +52,6 @@ llm:
   maxTokens: 2048
 
 git:
-  repo: devportal/devportal-ia
+  repo: devaiportal/devaiportal
   baseBranch: main
   url: http://localhost:3000  # gitea URL for local demo

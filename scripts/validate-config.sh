@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# DevPortal IA — Validate config against JSON Schema
+# DevAIPortal — Validate config against JSON Schema
 # Called by CI and `make validate-config`
 set -euo pipefail
 

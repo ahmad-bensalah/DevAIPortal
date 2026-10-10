@@ -1,5 +1,5 @@
 {
-  "name": "devportal-ia",
+  "name": "devaiportal",
   "version": "0.1.0",
   "private": true,
   "description": "Conversational self-service portal for ephemeral Kubernetes environments",

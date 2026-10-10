@@ -10,29 +10,29 @@ Decisions made without explicit user input. Each is the most conservative or por
 ## Configuration
 
 - **YAML is the config format** over TOML/JSON because it is the Kubernetes ecosystem lingua franca. (Component: `config/`)
-- **JSON Schema draft-07** for validation, matching Helm's `values.schema.json`. (Component: `devportal.config.schema.json`)
+- **JSON Schema draft-07** for validation, matching Helm's `values.schema.json`. (Component: `devaiportal.config.schema.json`)
 - **Secrets never appear in config YAML** — they live in `.env` only, loaded via `dotenv`. (Component: `config/`, `scripts/`)
 
 ## Adapters
 
 - **Mock LLM uses keyword extraction**, not a real model. It covers the happy path for demo and CI but will not handle ambiguous or adversarial inputs. Real LLM adapters are needed for production. (Component: `agent/src/providers/mock-llm.ts`)
-- **Static user mapper assigns every user to `devportal-users` plus `team-<username>`**. This is sufficient for single-user demo but not for multi-tenant production. (Component: `adapters/identity/`)
+- **Static user mapper assigns every user to `devaiportal-users` plus `team-<username>`**. This is sufficient for single-user demo but not for multi-tenant production. (Component: `adapters/identity/`)
 - **Console notifier writes to stdout**. It does not format rich messages. Teams/Slack/Email adapters will use adaptive cards / block kit / HTML respectively. (Component: `adapters/notify/`)
 
 ## Cluster
 
 - **Kind is the demo cluster** with port mappings on 80/443/5678/3000. These ports must be free on the host. (Component: `kind/kind-config.yaml`)
-- **Ingress class defaults to `nginx`**. The kind bootstrap will install ingress-nginx. (Component: `devportal.config.example.yaml`)
+- **Ingress class defaults to `nginx`**. The kind bootstrap will install ingress-nginx. (Component: `devaiportal.config.example.yaml`)
 - **No TLS in demo mode** — `clusterIssuer` is omitted. Production deployments should set it. (Component: config)
 
 ## Git
 
 - **Gitea is the demo Git host**, running inside the kind cluster. GitHub/GitLab adapters are for production. (Component: `adapters/git/`)
-- **Git repo is `devportal/devportal-ia`** by default. The setup wizard allows customization. (Component: config)
+- **Git repo is `devaiportal/devaiportal`** by default. The setup wizard allows customization. (Component: config)
 
 ## Naming
 
-- **`devportal.io/` annotation prefix** is used consistently. This is not a registered domain; it is a conventional prefix. (Component: all Kubernetes manifests)
+- **`devaiportal.io/` annotation prefix** is used consistently. This is not a registered domain; it is a conventional prefix. (Component: all Kubernetes manifests)
 - **Namespace pattern `<prefix>-<name>`** with `env` as default prefix. (Component: config, chart)
 
 ## TTL

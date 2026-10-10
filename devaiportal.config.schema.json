@@ -1,8 +1,8 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
-  "$id": "https://devportal.io/config/v1",
-  "title": "DevPortal IA Configuration",
-  "description": "Non-secret configuration for DevPortal IA. Secrets belong in .env.",
+  "$id": "https://devaiportal.io/config/v1",
+  "title": "DevAIPortal Configuration",
+  "description": "Non-secret configuration for DevAIPortal. Secrets belong in .env.",
   "type": "object",
   "required": [
     "adapters",
@@ -185,7 +185,7 @@
       "properties": {
         "repo": {
           "type": "string",
-          "description": "Repository in owner/name format (e.g. myorg/devportal-ia)."
+          "description": "Repository in owner/name format (e.g. myorg/devaiportal)."
         },
         "baseBranch": {
           "type": "string",

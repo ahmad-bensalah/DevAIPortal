@@ -4,10 +4,10 @@ import Ajv from 'ajv';
 import addFormats from 'ajv-formats';
 import yaml from 'js-yaml';
 
-const CONFIG_FILE = 'devportal.config.yaml';
-const SCHEMA_FILE = 'devportal.config.schema.json';
+const CONFIG_FILE = 'devaiportal.config.yaml';
+const SCHEMA_FILE = 'devaiportal.config.schema.json';
 
-export interface DevPortalConfig {
+export interface DevAIPortalConfig {
   adapters: {
     llm: 'azure-openai' | 'openai' | 'anthropic' | 'ollama' | 'mock';
     git: 'github' | 'gitlab' | 'gitea';
@@ -58,10 +58,10 @@ export interface SizeSpec {
 }
 
 /**
- * Load and validate devportal.config.yaml against the JSON Schema.
+ * Load and validate devaiportal.config.yaml against the JSON Schema.
  * Fails fast with human-readable error naming the exact key.
  */
-export function loadConfig(projectRoot?: string): DevPortalConfig {
+export function loadConfig(projectRoot?: string): DevAIPortalConfig {
   const root = projectRoot || process.cwd();
   const configPath = resolve(root, CONFIG_FILE);
   const schemaPath = resolve(root, SCHEMA_FILE);
@@ -69,7 +69,7 @@ export function loadConfig(projectRoot?: string): DevPortalConfig {
   if (!existsSync(configPath)) {
     throw new ConfigError(
       `Config file not found: ${configPath}\n` +
-      `Copy devportal.config.example.yaml to ${CONFIG_FILE} and edit it.`,
+      `Copy devaiportal.config.example.yaml to ${CONFIG_FILE} and edit it.`,
     );
   }
 
@@ -111,7 +111,7 @@ export function loadConfig(projectRoot?: string): DevPortalConfig {
     );
   }
 
-  return config as DevPortalConfig;
+  return config as DevAIPortalConfig;
 }
 
 export class ConfigError extends Error {

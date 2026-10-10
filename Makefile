@@ -1,13 +1,13 @@
-# DevPortal IA — Makefile
+# DevAIPortal — Makefile
 # Entry points for all lifecycle operations.
 # Run `make help` for available targets.
 SHELL := /bin/bash
 .DEFAULT_GOAL := help
 
 PROJECT_ROOT := $(shell pwd)
-KIND_CLUSTER := devportal
+KIND_CLUSTER := devaiportal
 KIND_CONFIG  := kind/kind-config.yaml
-CONFIG_FILE  := devportal.config.yaml
+CONFIG_FILE  := devaiportal.config.yaml
 
 # ──────────────────────────────────────────────────────────────
 # Setup & Validation
@@ -22,7 +22,7 @@ doctor: ## Preflight checks — one real call per adapter
 	@bash scripts/doctor.sh
 
 .PHONY: validate-config
-validate-config: ## Validate devportal.config.yaml against schema
+validate-config: ## Validate devaiportal.config.yaml against schema
 	@npx --yes tsx scripts/validate-config.ts
 
 .PHONY: deps
@@ -68,10 +68,10 @@ bootstrap: cluster-create ## Idempotent: install ArgoCD, Kyverno, n8n, import wo
 
 .PHONY: demo
 demo: ## Full demo: kind + bootstrap + sample request
-	@echo "──── DevPortal IA Demo Mode ────"
+	@echo "──── DevAIPortal Demo Mode ────"
 	@if [ ! -f "$(CONFIG_FILE)" ]; then \
 		echo "No config found. Copying demo defaults..."; \
-		cp devportal.config.example.yaml $(CONFIG_FILE); \
+		cp devaiportal.config.example.yaml $(CONFIG_FILE); \
 	fi
 	@$(MAKE) cluster-create
 	@$(MAKE) doctor || true
