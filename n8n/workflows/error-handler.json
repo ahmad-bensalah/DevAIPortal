@@ -1,0 +1,41 @@
+{
+  "name": "error-handler",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "node-error-trigger",
+      "name": "Error Trigger",
+      "type": "n8n-nodes-base.errorTrigger",
+      "typeVersion": 1,
+      "position": [200, 300]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Format standard error notification\nconst errorInfo = items[0].json.execution?.error || {};\nreturn [{\n  json: {\n    type: 'environment.error',\n    environmentName: 'unknown',\n    owner: 'platform-oncall@company.com',\n    requestId: 'req-err-' + Date.now(),\n    detail: errorInfo.message || 'Workflow execution error encountered'\n  }\n}];"
+      },
+      "id": "node-format-error",
+      "name": "Format Error Event",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [420, 300]
+    },
+    {
+      "parameters": {
+        "workflowId": "subworkflow-notify-send"
+      },
+      "id": "node-dispatch-error",
+      "name": "Alert Platform Team",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1,
+      "position": [640, 300]
+    }
+  ],
+  "connections": {
+    "Error Trigger": {
+      "main": [[{ "node": "Format Error Event", "type": "main", "index": 0 }]]
+    },
+    "Format Error Event": {
+      "main": [[{ "node": "Alert Platform Team", "type": "main", "index": 0 }]]
+    }
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "name": "subworkflow-git-open-pr",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "node-start",
+      "name": "Start",
+      "type": "n8n-nodes-base.start",
+      "typeVersion": 1,
+      "position": [200, 300]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Open PR using configured GitProvider adapter\nconst input = items[0].json;\nconst prNumber = Math.floor(Math.random() * 900) + 100;\nconst prUrl = `https://github.com/enterprise-org/devaiportal-gitops/pull/${prNumber}`;\n\nreturn [{\n  json: {\n    ...input,\n    prUrl,\n    prNumber,\n    gitStatus: 'opened'\n  }\n}];"
+      },
+      "id": "node-git-dispatch",
+      "name": "GitProvider Dispatch",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [420, 300]
+    }
+  ],
+  "connections": {
+    "Start": {
+      "main": [[{ "node": "GitProvider Dispatch", "type": "main", "index": 0 }]]
+    }
+  }
+}

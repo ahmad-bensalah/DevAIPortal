@@ -1,0 +1,110 @@
+{
+  "name": "intake-webhook",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "devaiportal/request",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "id": "node-webhook-intake",
+      "name": "Webhook Intake",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [200, 300]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Extract request and assign correlation requestId\nconst input = items[0].json;\nconst requestId = 'req-' + Math.random().toString(36).substring(2, 10);\nreturn [{\n  json: {\n    requestId,\n    query: input.query || input.message || '',\n    owner: input.owner || input.user || 'developer@company.com',\n    team: input.team || 'engineering',\n    receivedAt: new Date().toISOString()\n  }\n}];"
+      },
+      "id": "node-prepare-context",
+      "name": "Assign Request ID & Context",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [420, 300]
+    },
+    {
+      "parameters": {
+        "workflowId": "workflow-validate-params"
+      },
+      "id": "node-call-validation",
+      "name": "Execute Validation & LLM Subworkflow",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1,
+      "position": [640, 300]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "boolean": [
+            {
+              "value1": "={{$json[\"approved\"]}}",
+              "value2": true
+            }
+          ]
+        }
+      },
+      "id": "node-check-approval",
+      "name": "Threshold Check",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 1,
+      "position": [860, 300]
+    },
+    {
+      "parameters": {
+        "workflowId": "workflow-open-pr"
+      },
+      "id": "node-call-open-pr",
+      "name": "Trigger GitOps Pull Request",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1,
+      "position": [1080, 220]
+    },
+    {
+      "parameters": {
+        "workflowId": "workflow-notify-approval",
+        "options": {}
+      },
+      "id": "node-call-approval-notify",
+      "name": "Notify Approval Required",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1,
+      "position": [1080, 400]
+    },
+    {
+      "parameters": {
+        "options": {},
+        "responseBody": "={\n  \"status\": \"processing\",\n  \"requestId\": \"{{$json[\"requestId\"]}}\",\n  \"prUrl\": \"{{$json[\"prUrl\"]}}\"\n}"
+      },
+      "id": "node-respond-webhook",
+      "name": "Respond to User",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1300, 300]
+    }
+  ],
+  "connections": {
+    "Webhook Intake": {
+      "main": [[{ "node": "Assign Request ID & Context", "type": "main", "index": 0 }]]
+    },
+    "Assign Request ID & Context": {
+      "main": [[{ "node": "Execute Validation & LLM Subworkflow", "type": "main", "index": 0 }]]
+    },
+    "Execute Validation & LLM Subworkflow": {
+      "main": [[{ "node": "Threshold Check", "type": "main", "index": 0 }]]
+    },
+    "Threshold Check": {
+      "main": [
+        [{ "node": "Trigger GitOps Pull Request", "type": "main", "index": 0 }],
+        [{ "node": "Notify Approval Required", "type": "main", "index": 0 }]
+      ]
+    },
+    "Trigger GitOps Pull Request": {
+      "main": [[{ "node": "Respond to User", "type": "main", "index": 0 }]]
+    },
+    "Notify Approval Required": {
+      "main": [[{ "node": "Respond to User", "type": "main", "index": 0 }]]
+    }
+  }
+}

@@ -1,0 +1,15 @@
+# Default values for environment blueprint.
+# Note: In production GitOps, the environment-specific values.yaml
+# submitted via Pull Request supplies these fields.
+
+name: sample-app
+blueprint: web
+owner: platform-dev@company.com
+team: platform
+size: small
+image: docker.io/library/nginx:1.27.2
+port: 8080
+ingress: false
+internetEgress: false
+expiresAt: "2026-10-15T00:00:00Z"
+requestId: "req-init-sample-001"

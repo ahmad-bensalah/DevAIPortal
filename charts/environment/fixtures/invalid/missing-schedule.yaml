@@ -1,0 +1,9 @@
+# Invalid: missing schedule and command for batch blueprint
+name: bad-batch
+blueprint: batch
+owner: user@company.com
+team: ops
+size: small
+image: docker.io/busybox:1.36
+expiresAt: "2026-10-15T00:00:00Z"
+requestId: "req-invalid-batch"

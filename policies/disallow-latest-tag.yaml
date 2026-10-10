@@ -1,0 +1,29 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: disallow-latest-tag
+  annotations:
+    policies.kyverno.io/title: Disallow :latest Container Image Tag
+    policies.kyverno.io/category: Supply Chain & Immutability Security
+    policies.kyverno.io/severity: high
+    policies.kyverno.io/description: >-
+      Prohibits container images utilizing the untrusted ':latest' tag
+      or omitting tags completely within managed ephemeral environments.
+spec:
+  validationFailureAction: Enforce
+  background: true
+  rules:
+    - name: validate-image-tag
+      match:
+        any:
+          - resources:
+              kinds:
+                - Pod
+              namespaces:
+                - "env-*"
+      validate:
+        message: "Using ':latest' or untagged container images is strictly prohibited for reproducible GitOps environments."
+        pattern:
+          spec:
+            containers:
+              - image: "!*:latest & !*:"

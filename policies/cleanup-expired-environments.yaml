@@ -1,0 +1,26 @@
+apiVersion: kyverno.io/v2beta1
+kind: ClusterCleanupPolicy
+metadata:
+  name: cleanup-expired-environments
+  annotations:
+    policies.kyverno.io/title: Cleanup Expired Ephemeral Environments
+    policies.kyverno.io/category: Platform Lifecycle & Cost Governance
+    policies.kyverno.io/severity: high
+    policies.kyverno.io/description: >-
+      Automatically purges ephemeral namespaces whose 'devaiportal.io/expires-at'
+      timestamp is in the past.
+spec:
+  match:
+    any:
+      - resources:
+          kinds:
+            - Namespace
+          selector:
+            matchLabels:
+              devaiportal.io/managed: "true"
+  schedule: "*/15 * * * *"
+  conditions:
+    all:
+      - key: "{{ time_diff('{{ time_now_utc() }}', '{{ target.metadata.annotations.\"devaiportal.io/expires-at\" }}') }}"
+        operator: LessThan
+        value: 0s

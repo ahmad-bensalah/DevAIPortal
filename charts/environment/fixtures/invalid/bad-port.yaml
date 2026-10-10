@@ -1,0 +1,10 @@
+# Invalid: port under 1024 violates non-privileged requirement
+name: bad-port
+blueprint: web
+owner: attacker@bad.com
+team: sec
+size: small
+image: docker.io/library/nginx:1.27
+port: 80
+expiresAt: "2026-10-15T00:00:00Z"
+requestId: "req-invalid-port"

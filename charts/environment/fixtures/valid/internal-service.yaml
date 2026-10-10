@@ -1,0 +1,10 @@
+name: orders-api
+blueprint: internal-service
+owner: bob@company.com
+team: ordering
+size: medium
+image: ghcr.io/company/orders:v1.2.0
+port: 3000
+internetEgress: true
+expiresAt: "2026-10-15T08:00:00Z"
+requestId: "req-valid-internal-01"

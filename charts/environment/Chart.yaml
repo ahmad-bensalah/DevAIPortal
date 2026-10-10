@@ -1,0 +1,12 @@
+apiVersion: v2
+name: environment
+description: Ephemeral environment blueprint for DevAIPortal
+type: application
+version: 0.1.0
+appVersion: "1.0.0"
+keywords:
+  - platform-engineering
+  - devaiportal
+  - ephemeral-environments
+maintainers:
+  - name: Platform Engineering Team

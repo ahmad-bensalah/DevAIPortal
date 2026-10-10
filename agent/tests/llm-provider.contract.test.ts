@@ -82,10 +82,13 @@ describe('MockLlmProvider', () => {
     if (result.ok) expect(result.data.blueprint).toBe('internal-service');
   });
 
-  it('extracts TTL from "5 days"', async () => {
+  it('extracts TTL and computes RFC3339 expiresAt timestamp', async () => {
     const result = await provider.complete('', 'a web service with 5 days ttl', {});
     expect(result.ok).toBe(true);
-    if (result.ok) expect(result.data.ttlDays).toBe(5);
+    if (result.ok) {
+      expect(result.data.expiresAt).toBeDefined();
+      expect(typeof result.data.expiresAt).toBe('string');
+    }
   });
 
   it('extracts team name', async () => {

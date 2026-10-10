@@ -1,0 +1,59 @@
+{{- $platform := .Files.Get "files/platform.yaml" | fromYaml -}}
+{{- $nsName := include "environment.namespace" . -}}
+{{- $sizeTier := get $platform.sizes .Values.size -}}
+
+{{- if eq .Values.blueprint "batch" }}
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: {{ .Values.name }}
+  namespace: {{ $nsName }}
+  labels:
+    {{- include "environment.labels" . | nindent 4 }}
+spec:
+  schedule: {{ .Values.schedule | quote }}
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  startingDeadlineSeconds: 120
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      ttlSecondsAfterFinished: 86400
+      template:
+        metadata:
+          labels:
+            {{- include "environment.labels" . | nindent 12 }}
+        spec:
+          serviceAccountName: default-workload
+          restartPolicy: OnFailure
+          securityContext:
+            runAsNonRoot: true
+            seccompProfile:
+              type: RuntimeDefault
+          containers:
+            - name: job
+              image: {{ .Values.image }}
+              imagePullPolicy: IfNotPresent
+              command:
+                {{- toYaml .Values.command | nindent 16 }}
+              securityContext:
+                readOnlyRootFilesystem: true
+                allowPrivilegeEscalation: false
+                capabilities:
+                  drop:
+                    - ALL
+              resources:
+                limits:
+                  cpu: {{ $sizeTier.cpu | quote }}
+                  memory: {{ $sizeTier.memory | quote }}
+                requests:
+                  cpu: "100m"
+                  memory: "128Mi"
+              volumeMounts:
+                - name: tmp-volume
+                  mountPath: /tmp
+          volumes:
+            - name: tmp-volume
+              emptyDir: {}
+{{- end }}

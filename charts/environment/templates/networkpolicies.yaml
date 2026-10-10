@@ -1,0 +1,107 @@
+{{- $platform := .Files.Get "files/platform.yaml" | fromYaml -}}
+{{- $nsName := include "environment.namespace" . -}}
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-all
+  namespace: {{ $nsName }}
+  labels:
+    {{- include "environment.labels" . | nindent 4 }}
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+    - Egress
+  egress:
+    # Always allow CoreDNS egress
+    - to:
+        - namespaceSelector: {}
+          podSelector:
+            matchLabels:
+              k8s-app: kube-dns
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+    # Allow intra-namespace communication
+    - to:
+        - podSelector: {}
+  ingress:
+    # Allow intra-namespace communication
+    - from:
+        - podSelector: {}
+---
+{{- if eq .Values.blueprint "web" }}
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-ingress-controller
+  namespace: {{ $nsName }}
+  labels:
+    {{- include "environment.labels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: {{ .Values.name }}
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: {{ $platform.cluster.ingressNamespace | default "ingress-nginx" }}
+      ports:
+        - protocol: TCP
+          port: {{ .Values.port }}
+{{- end }}
+---
+{{- if eq .Values.blueprint "internal-service" }}
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-team-ingress
+  namespace: {{ $nsName }}
+  labels:
+    {{- include "environment.labels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: {{ .Values.name }}
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              devaiportal.io/team: {{ .Values.team }}
+      ports:
+        - protocol: TCP
+          port: {{ .Values.port }}
+{{- end }}
+{{- if .Values.internetEgress }}
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-internet-https
+  namespace: {{ $nsName }}
+  labels:
+    {{- include "environment.labels" . | nindent 4 }}
+spec:
+  podSelector: {}
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - ipBlock:
+            cidr: 0.0.0.0/0
+            except:
+              - 10.0.0.0/8
+              - 172.16.0.0/12
+              - 192.168.0.0/16
+              - 169.254.0.0/16
+      ports:
+        - protocol: TCP
+          port: 443
+{{- end }}

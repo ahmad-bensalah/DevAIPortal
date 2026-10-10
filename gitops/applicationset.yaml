@@ -1,0 +1,39 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: devaiportal-environments
+  namespace: argocd
+spec:
+  goTemplate: true
+  generators:
+    # Discovers every environments/<name>/values.yaml file committed in the GitOps repo
+    - git:
+        repoURL: '{{ .Values.git.url | default "https://github.com" }}/{{ .Values.git.repo | default "enterprise-org/devaiportal-gitops" }}.git'
+        revision: '{{ .Values.git.baseBranch | default "main" }}'
+        files:
+          - path: "gitops/environments/*/values.yaml"
+  template:
+    metadata:
+      name: 'env-{{ .path.basename }}'
+      labels:
+        devaiportal.io/managed: "true"
+        devaiportal.io/environment: '{{ .path.basename }}'
+    spec:
+      project: devaiportal-environments
+      source:
+        repoURL: '{{ .Values.git.url | default "https://github.com" }}/{{ .Values.git.repo | default "enterprise-org/devaiportal-gitops" }}.git'
+        targetRevision: '{{ .Values.git.baseBranch | default "main" }}'
+        path: charts/environment
+        helm:
+          valueFiles:
+            - '/{{ .path.path }}'
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: 'env-{{ .path.basename }}'
+      syncPolicy:
+        automated:
+          prune: true
+          selfHeal: true
+        syncOptions:
+          - CreateNamespace=false
+          - ApplyOutOfSyncOnly=true

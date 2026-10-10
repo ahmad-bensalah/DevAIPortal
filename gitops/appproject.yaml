@@ -1,0 +1,26 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: devaiportal-environments
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io
+spec:
+  description: Self-service ephemeral environments managed by DevAIPortal
+  sourceRepos:
+    - '*'
+  destinations:
+    - namespace: 'env-*'
+      server: https://kubernetes.default.svc
+  clusterResourceWhitelist:
+    - group: ''
+      kind: Namespace
+  namespaceResourceWhitelist:
+    - group: '*'
+      kind: '*'
+  namespaceResourceBlacklist:
+    # Explicitly prohibit developers and apps from managing Secret objects directly
+    - group: ''
+      kind: Secret
+  orphanedResources:
+    warn: true

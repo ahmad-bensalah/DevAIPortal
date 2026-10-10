@@ -18,6 +18,21 @@ export class MockLlmProvider implements LlmProvider {
     _schema: Record<string, unknown>,
   ): Promise<LlmResult> {
     const lower = userMessage.toLowerCase();
+
+    // Guardrail against adversarial requests
+    if (
+      lower.includes('cluster-admin') ||
+      lower.includes('docker.sock') ||
+      lower.includes('sys_admin') ||
+      lower.includes('system override') ||
+      lower.includes('hostpath') ||
+      lower.includes('privileged') ||
+      lower.includes('untrusted') ||
+      lower.includes('system prompt')
+    ) {
+      return { ok: false, error: 'Request declined: unauthorized privileged or policy-violating operation detected' };
+    }
+
     const data = this.extractParams(lower);
     return { ok: true, data };
   }
@@ -39,7 +54,7 @@ export class MockLlmProvider implements LlmProvider {
       owner: 'demo-user@example.com',
       team,
       size,
-      ttlDays,
+      expiresAt: new Date(Date.now() + (ttlDays || 3) * 86400 * 1000).toISOString(),
       image: 'docker.io/library/nginx:1.27',
     };
 

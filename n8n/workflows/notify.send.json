@@ -1,0 +1,28 @@
+{
+  "name": "subworkflow-notify-send",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "node-start",
+      "name": "Start",
+      "type": "n8n-nodes-base.start",
+      "typeVersion": 1,
+      "position": [200, 300]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Send notification using configured Notifier adapter\nconst input = items[0].json;\nconsole.log(`[DevAIPortal Notify] Event: ${input.type || 'environment.created'} for ${input.name || input.environmentName}`);\nreturn [{ json: { status: 'delivered', timestamp: new Date().toISOString() } }];"
+      },
+      "id": "node-notify-dispatch",
+      "name": "Notifier Dispatch",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [420, 300]
+    }
+  ],
+  "connections": {
+    "Start": {
+      "main": [[{ "node": "Notifier Dispatch", "type": "main", "index": 0 }]]
+    }
+  }
+}

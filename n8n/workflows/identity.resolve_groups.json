@@ -1,0 +1,28 @@
+{
+  "name": "subworkflow-identity-resolve-groups",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "node-start",
+      "name": "Start",
+      "type": "n8n-nodes-base.start",
+      "typeVersion": 1,
+      "position": [200, 300]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Map user identity to Kubernetes RBAC groups\nconst input = items[0].json;\nconst userId = input.userId || input.owner || 'developer@company.com';\nconst username = userId.split('@')[0];\n\nreturn [{\n  json: {\n    userId,\n    groups: ['devaiportal-developers', `team-${username}`],\n    displayName: username\n  }\n}];"
+      },
+      "id": "node-identity-dispatch",
+      "name": "IdentityMapper Dispatch",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [420, 300]
+    }
+  ],
+  "connections": {
+    "Start": {
+      "main": [[{ "node": "IdentityMapper Dispatch", "type": "main", "index": 0 }]]
+    }
+  }
+}

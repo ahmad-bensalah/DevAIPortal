@@ -1,0 +1,50 @@
+{
+  "name": "expiry-reminder",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "hours",
+              "hoursInterval": 1
+            }
+          ]
+        }
+      },
+      "id": "node-cron-trigger",
+      "name": "Hourly Cron Check",
+      "type": "n8n-nodes-base.cron",
+      "typeVersion": 1,
+      "position": [200, 300]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Query managed namespaces approaching 24h expiration limit\n// Mock data simulates scanning Kubernetes Cluster metadata\nconst sampleExpiring = [\n  {\n    type: 'environment.expiry_warning',\n    environmentName: 'env-payments-web',\n    owner: 'alice@company.com',\n    team: 'payments',\n    expiresAt: new Date(Date.now() + 23 * 3600 * 1000).toISOString(),\n    requestId: 'req-scan-001'\n  }\n];\nreturn sampleExpiring.map(e => ({ json: e }));"
+      },
+      "id": "node-filter-expiring",
+      "name": "Scan Expiring Environments (<24h)",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [420, 300]
+    },
+    {
+      "parameters": {
+        "workflowId": "subworkflow-notify-send"
+      },
+      "id": "node-dispatch-warning",
+      "name": "Send 24h Expiration Warning",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1,
+      "position": [640, 300]
+    }
+  ],
+  "connections": {
+    "Hourly Cron Check": {
+      "main": [[{ "node": "Scan Expiring Environments (<24h)", "type": "main", "index": 0 }]]
+    },
+    "Scan Expiring Environments (<24h)": {
+      "main": [[{ "node": "Send 24h Expiration Warning", "type": "main", "index": 0 }]]
+    }
+  }
+}

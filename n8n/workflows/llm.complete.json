@@ -1,0 +1,28 @@
+{
+  "name": "subworkflow-llm-complete",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "node-start",
+      "name": "Start",
+      "type": "n8n-nodes-base.start",
+      "typeVersion": 1,
+      "position": [200, 300]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Switch LLM adapter dynamically based on platform config\nconst input = items[0].json;\nconst query = (input.query || '').toLowerCase();\n\n// Deterministic adapter execution\nconst blueprint = query.includes('cron') || query.includes('batch') ? 'batch' :\n                  query.includes('internal') || query.includes('backend') ? 'internal-service' : 'web';\nconst size = query.includes('large') ? 'large' : query.includes('medium') ? 'medium' : 'small';\nconst name = (query.match(/named\\s+([a-z0-9-]+)/) || query.match(/called\\s+([a-z0-9-]+)/) || [])[1] || 'ephemeral-app';\nconst team = (query.match(/team\\s+([a-z0-9-]+)/) || [])[1] || 'engineering';\n\nconst base = {\n  name,\n  blueprint,\n  owner: input.owner || 'developer@company.com',\n  team,\n  size,\n  image: 'docker.io/library/nginx:1.27.2',\n  expiresAt: new Date(Date.now() + 3 * 86400 * 1000).toISOString(),\n  requestId: input.requestId || 'req-default'\n};\n\nif (blueprint === 'web') {\n  base.port = 8080;\n  base.ingress = true;\n} else if (blueprint === 'internal-service') {\n  base.port = 8080;\n  base.ingress = false;\n} else if (blueprint === 'batch') {\n  base.schedule = '0 */6 * * *';\n  base.command = ['/bin/sh', '-c', 'echo processing'];\n}\n\nreturn [{ json: base }];"
+      },
+      "id": "node-llm-dispatch",
+      "name": "LlmProvider Switch",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [420, 300]
+    }
+  ],
+  "connections": {
+    "Start": {
+      "main": [[{ "node": "LlmProvider Switch", "type": "main", "index": 0 }]]
+    }
+  }
+}

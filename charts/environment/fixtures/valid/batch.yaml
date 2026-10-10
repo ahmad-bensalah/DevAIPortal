@@ -1,0 +1,13 @@
+name: analytics-etl
+blueprint: batch
+owner: charlie@company.com
+team: data
+size: large
+image: registry.k8s.io/busybox:1.36.1
+schedule: "0 */4 * * *"
+command:
+  - "/bin/sh"
+  - "-c"
+  - "echo processing batch analytics"
+expiresAt: "2026-10-18T18:00:00Z"
+requestId: "req-valid-batch-01"

@@ -1,0 +1,11 @@
+name: payments-web
+blueprint: web
+owner: alice@company.com
+team: payments
+size: small
+image: docker.io/library/nginx:1.27.2
+port: 8080
+ingress: true
+internetEgress: false
+expiresAt: "2026-10-14T12:00:00Z"
+requestId: "req-valid-web-01"

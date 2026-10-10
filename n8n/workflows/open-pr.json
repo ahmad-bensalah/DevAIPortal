@@ -1,0 +1,54 @@
+{
+  "name": "open-pr",
+  "nodes": [
+    {
+      "parameters": {},
+      "id": "node-start",
+      "name": "Start",
+      "type": "n8n-nodes-base.start",
+      "typeVersion": 1,
+      "position": [200, 300]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Format environment parameters as YAML for GitOps\nconst data = items[0].json;\nconst envName = data.name || 'test-env';\nconst filePath = `gitops/environments/${envName}/values.yaml`;\n\nconst lines = [\n  `name: ${data.name}`,\n  `blueprint: ${data.blueprint}`,\n  `owner: \"${data.owner}\"`,\n  `team: ${data.team}`,\n  `size: ${data.size}`,\n  `image: ${data.image}`,\n  `expiresAt: \"${data.expiresAt}\"`,\n  `requestId: \"${data.requestId}\"`\n];\nif (data.port) lines.push(`port: ${data.port}`);\nif (data.ingress !== undefined) lines.push(`ingress: ${data.ingress}`);\nif (data.schedule) lines.push(`schedule: \"${data.schedule}\"`);\nif (data.command) lines.push(`command: [${data.command.map(c => JSON.stringify(c)).join(', ')}]`);\n\nreturn [{\n  json: {\n    branch: `env/${envName}-${data.requestId}`,\n    baseBranch: 'main',\n    filePath,\n    fileContent: lines.join('\\n') + '\\n',\n    title: `feat(env): provision ephemeral environment ${envName}`,\n    body: `### DevAIPortal Automated Provisioning\\n\\n- **Environment**: \\`${envName}\\`\\n- **Blueprint**: \\`${data.blueprint}\\`\\n- **Owner**: \\`${data.owner}\\`\\n- **Expires At**: \\`${data.expiresAt}\\`\\n- **Request ID**: \\`${data.requestId}\\``,\n    ...data\n  }\n}];"
+      },
+      "id": "node-format-yaml",
+      "name": "Format GitOps Values & PR Metadata",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [420, 300]
+    },
+    {
+      "parameters": {
+        "workflowId": "subworkflow-git-open-pr"
+      },
+      "id": "node-git-adapter",
+      "name": "Dispatch to Git Adapter",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1,
+      "position": [640, 300]
+    },
+    {
+      "parameters": {
+        "workflowId": "subworkflow-notify-send"
+      },
+      "id": "node-notify-adapter",
+      "name": "Broadcast Environment Created Event",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "typeVersion": 1,
+      "position": [860, 300]
+    }
+  ],
+  "connections": {
+    "Start": {
+      "main": [[{ "node": "Format GitOps Values & PR Metadata", "type": "main", "index": 0 }]]
+    },
+    "Format GitOps Values & PR Metadata": {
+      "main": [[{ "node": "Dispatch to Git Adapter", "type": "main", "index": 0 }]]
+    },
+    "Dispatch to Git Adapter": {
+      "main": [[{ "node": "Broadcast Environment Created Event", "type": "main", "index": 0 }]]
+    }
+  }
+}
