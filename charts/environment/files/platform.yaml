@@ -14,13 +14,15 @@ sizes:
     memory: 8Gi
     pods: 30
 cluster:
-  baseDomain: dev.local
+  baseDomain: dev.internal.company.com
   ingressClass: nginx
   ingressNamespace: ingress-nginx
-  clusterIssuer: ''
+  clusterIssuer: letsencrypt-prod
 namespaces:
   prefix: env
   allowedRegistries:
+    - mcr.microsoft.com
+    - mycompany.azurecr.io
     - docker.io
     - ghcr.io
     - registry.k8s.io

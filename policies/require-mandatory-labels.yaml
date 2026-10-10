@@ -1,0 +1,31 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: require-mandatory-labels
+  annotations:
+    policies.kyverno.io/title: Require Mandatory Ephemeral Environment Labels
+    policies.kyverno.io/category: Governance & Observability
+    policies.kyverno.io/severity: high
+    policies.kyverno.io/description: >-
+      Ephemeral namespaces managed by DevAIPortal must include mandatory labels
+      identifying owner, team, and managed state for lifecycle tracking.
+spec:
+  validationFailureAction: Enforce
+  background: true
+  rules:
+    - name: check-namespace-labels
+      match:
+        any:
+          - resources:
+              kinds:
+                - Namespace
+              selector:
+                matchLabels:
+                  devaiportal.io/managed: "true"
+      validate:
+        message: "Managed namespaces must specify 'devaiportal.io/owner' and 'devaiportal.io/team' labels."
+        pattern:
+          metadata:
+            labels:
+              devaiportal.io/owner: "?*"
+              devaiportal.io/team: "?*"

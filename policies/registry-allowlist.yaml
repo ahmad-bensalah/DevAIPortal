@@ -22,8 +22,8 @@ spec:
               namespaces:
                 - env-*
       validate:
-        message: Images must originate from authorized registries (docker.io, ghcr.io, registry.k8s.io).
+        message: Images must originate from authorized registries (mcr.microsoft.com, mycompany.azurecr.io, docker.io, ghcr.io, registry.k8s.io).
         pattern:
           spec:
             containers:
-              - image: docker.io/* | ghcr.io/* | registry.k8s.io/*
+              - image: mcr.microsoft.com/* | mycompany.azurecr.io/* | docker.io/* | ghcr.io/* | registry.k8s.io/*

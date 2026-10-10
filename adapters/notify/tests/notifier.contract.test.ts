@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { ConsoleNotifier } from '../src/console-notifier.js';
+import { EmailNotifier } from '../src/email-notifier.js';
 import type { Notifier, NotifyEvent } from '../src/notifier.js';
 
 /**
@@ -63,6 +64,7 @@ export function notifierContractTests(
 }
 
 notifierContractTests('console', () => new ConsoleNotifier());
+notifierContractTests('email', () => new EmailNotifier());
 
 describe('Remote Notifiers Contract & Fallback', () => {
   it('TeamsNotifier skips cleanly if TEAMS_WEBHOOK_URL is not provided', async () => {

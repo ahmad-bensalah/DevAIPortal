@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: good-managed-namespace
+  labels:
+    devaiportal.io/managed: "true"
+    devaiportal.io/owner: "alice"
+    devaiportal.io/team: "billing"
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: bad-managed-namespace
+  labels:
+    devaiportal.io/managed: "true"

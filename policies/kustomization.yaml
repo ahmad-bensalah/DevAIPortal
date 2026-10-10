@@ -4,4 +4,7 @@ kind: Kustomization
 resources:
   - registry-allowlist.yaml
   - disallow-latest-tag.yaml
+  - require-run-as-non-root.yaml
+  - require-resource-requests-limits.yaml
+  - require-mandatory-labels.yaml
   - cleanup-expired-environments.yaml

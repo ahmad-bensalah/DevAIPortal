@@ -320,10 +320,15 @@ metadata:
     devaiportal.io/size: small
   annotations:
     kubernetes.io/ingress.class: "nginx"
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
 spec:
   ingressClassName: nginx
+  tls:
+    - hosts:
+        - payments-web.dev.internal.company.com
+      secretName: payments-web-tls
   rules:
-    - host: payments-web.dev.local
+    - host: payments-web.dev.internal.company.com
       http:
         paths:
           - path: /

@@ -1,5 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { StaticUserMapper } from '../src/static-user-mapper.js';
+import { OidcGroupMapper } from '../src/oidc-group-mapper.js';
 import type { IdentityMapper } from '../src/identity-mapper.js';
 
 /**
@@ -47,6 +48,7 @@ export function identityMapperContractTests(
 }
 
 identityMapperContractTests('static-user', () => new StaticUserMapper());
+identityMapperContractTests('oidc-group', () => new OidcGroupMapper());
 
 describe('StaticUserMapper', () => {
   const mapper = new StaticUserMapper('devaiportal-users');

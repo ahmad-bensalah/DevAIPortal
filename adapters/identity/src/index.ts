@@ -1,3 +1,4 @@
-export type { IdentityMapper, GroupResult, HealthResult } from './identity-mapper.js';
-export { StaticUserMapper } from './static-user-mapper.js';
-export { EntraGroupMapper } from './entra-group-mapper.js';
+export * from './identity-mapper.js';
+export * from './entra-group-mapper.js';
+export * from './oidc-group-mapper.js';
+export * from './static-user-mapper.js';

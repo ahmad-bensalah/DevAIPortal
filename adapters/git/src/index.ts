@@ -1,2 +1,4 @@
-export type { GitProvider, OpenPrParams, PrResult, HealthResult } from './git-provider.js';
-export { GitHubProvider } from './github-provider.js';
+export * from './git-provider.js';
+export * from './github-provider.js';
+export * from './gitlab-provider.js';
+export * from './gitea-provider.js';

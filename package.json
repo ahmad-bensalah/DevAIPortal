@@ -8,8 +8,8 @@
     "build": "tsc",
     "test": "vitest run",
     "test:watch": "vitest",
-    "lint": "eslint . --ext .ts",
-    "validate-config": "ts-node scripts/validate-config.ts"
+    "lint": "npx tsx scripts/lint-adrs.ts",
+    "validate-config": "npx tsx scripts/validate-config.ts"
   },
   "engines": {
     "node": ">=20.0.0"
