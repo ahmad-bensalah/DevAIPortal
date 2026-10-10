@@ -6,6 +6,7 @@ export default defineConfig({
       'agent/tests/**/*.test.ts',
       'adapters/**/tests/**/*.test.ts',
       'config/**/*.test.ts',
+      'docs/**/*.test.ts',
     ],
     globals: false,
     testTimeout: 10000,

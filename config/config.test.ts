@@ -1,10 +1,13 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { writeFileSync, mkdirSync, rmSync, copyFileSync } from 'node:fs';
+import { writeFileSync, mkdirSync, rmSync, copyFileSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import yaml from 'js-yaml';
 import { loadConfig, ConfigError } from '../config/index.js';
+import { renderPlatform } from '../scripts/render-platform.js';
 
-const TEST_DIR = join(import.meta.dirname, '..', '__test_config_tmp__');
-const SCHEMA_SRC = join(import.meta.dirname, '..', 'devaiportal.config.schema.json');
+const REPO_ROOT = join(import.meta.dirname, '..');
+const TEST_DIR = join(REPO_ROOT, '__test_config_tmp__');
+const SCHEMA_SRC = join(REPO_ROOT, 'devaiportal.config.schema.json');
 
 describe('loadConfig', () => {
   beforeEach(() => {
@@ -17,12 +20,12 @@ describe('loadConfig', () => {
   });
 
   function writeConfig(obj: Record<string, unknown>) {
-    // Write as YAML-compatible JSON (valid YAML)
-    const yaml = JSON.stringify(obj, null, 2);
-    writeFileSync(join(TEST_DIR, 'devaiportal.config.yaml'), yaml);
+    const yamlContent = yaml.dump(obj);
+    writeFileSync(join(TEST_DIR, 'devaiportal.config.yaml'), yamlContent);
   }
 
   const VALID_CONFIG = {
+    version: 'v1',
     adapters: {
       llm: 'mock',
       git: 'gitea',
@@ -51,9 +54,25 @@ describe('loadConfig', () => {
   it('loads a valid config without error', () => {
     writeConfig(VALID_CONFIG);
     const config = loadConfig(TEST_DIR);
+    expect(config.version).toBe('v1');
     expect(config.adapters.llm).toBe('mock');
     expect(config.cluster.context).toBe('kind-devaiportal');
     expect(config.sizes.small.cpu).toBe('500m');
+  });
+
+  it('validates the committed devaiportal.config.example.yaml against schema', () => {
+    const examplePath = join(REPO_ROOT, 'devaiportal.config.example.yaml');
+    const rawExample = readFileSync(examplePath, 'utf-8');
+    writeFileSync(join(TEST_DIR, 'devaiportal.config.yaml'), rawExample);
+
+    const config = loadConfig(TEST_DIR);
+    expect(config.version).toBe('v1');
+    expect(config.adapters.llm).toBe('azure-openai');
+  });
+
+  it('validates the committed devaiportal.config.yaml against schema', () => {
+    const config = loadConfig(REPO_ROOT);
+    expect(config.version).toBe('v1');
   });
 
   it('throws ConfigError when config file is missing', () => {
@@ -62,31 +81,82 @@ describe('loadConfig', () => {
     expect(() => loadConfig(TEST_DIR)).toThrow('Config file not found');
   });
 
-  it('rejects unknown adapter value', () => {
+  // Negative tests: verify fail-fast error with exact JSON path
+  it('rejects missing version field naming JSON path', () => {
+    const { version, ...noVersion } = VALID_CONFIG;
+    writeConfig(noVersion);
+    try {
+      loadConfig(TEST_DIR);
+      expect.unreachable('should throw');
+    } catch (e) {
+      expect(e).toBeInstanceOf(ConfigError);
+      expect((e as ConfigError).message).toContain("must have required property 'version'");
+    }
+  });
+
+  it('rejects unsupported schema version naming JSON path', () => {
+    const bad = { ...VALID_CONFIG, version: 'v2' };
+    writeConfig(bad);
+    try {
+      loadConfig(TEST_DIR);
+      expect.unreachable('should throw');
+    } catch (e) {
+      expect(e).toBeInstanceOf(ConfigError);
+      expect((e as ConfigError).message).toContain('/version');
+      expect((e as ConfigError).message).toContain('must be equal to one of the allowed values');
+    }
+  });
+
+  it('rejects unknown adapter value naming JSON path', () => {
     const bad = { ...VALID_CONFIG, adapters: { ...VALID_CONFIG.adapters, llm: 'bedrock' } };
     writeConfig(bad);
-    expect(() => loadConfig(TEST_DIR)).toThrow(ConfigError);
+    try {
+      loadConfig(TEST_DIR);
+      expect.unreachable('should throw');
+    } catch (e) {
+      expect(e).toBeInstanceOf(ConfigError);
+      expect((e as ConfigError).message).toContain('/adapters/llm');
+    }
   });
 
-  it('rejects missing required field', () => {
+  it('rejects missing required field naming JSON path', () => {
     const { ttl, ...noTtl } = VALID_CONFIG;
     writeConfig(noTtl);
-    expect(() => loadConfig(TEST_DIR)).toThrow(ConfigError);
+    try {
+      loadConfig(TEST_DIR);
+      expect.unreachable('should throw');
+    } catch (e) {
+      expect(e).toBeInstanceOf(ConfigError);
+      expect((e as ConfigError).message).toContain("must have required property 'ttl'");
+    }
   });
 
-  it('rejects additional properties', () => {
-    const bad = { ...VALID_CONFIG, extraField: 'nope' };
+  it('rejects unknown / additional properties naming exact field', () => {
+    const bad = { ...VALID_CONFIG, unexpectedField: 'forbidden' };
     writeConfig(bad);
-    expect(() => loadConfig(TEST_DIR)).toThrow(ConfigError);
+    try {
+      loadConfig(TEST_DIR);
+      expect.unreachable('should throw');
+    } catch (e) {
+      expect(e).toBeInstanceOf(ConfigError);
+      expect((e as ConfigError).message).toContain('must NOT have additional properties');
+      expect((e as ConfigError).message).toContain('unexpectedField');
+    }
   });
 
-  it('rejects invalid namespace prefix', () => {
+  it('rejects invalid namespace prefix pattern', () => {
     const bad = {
       ...VALID_CONFIG,
-      namespaces: { ...VALID_CONFIG.namespaces, prefix: 'UPPER' },
+      namespaces: { ...VALID_CONFIG.namespaces, prefix: 'UPPERCASE_INVALID' },
     };
     writeConfig(bad);
-    expect(() => loadConfig(TEST_DIR)).toThrow(ConfigError);
+    try {
+      loadConfig(TEST_DIR);
+      expect.unreachable('should throw');
+    } catch (e) {
+      expect(e).toBeInstanceOf(ConfigError);
+      expect((e as ConfigError).message).toContain('/namespaces/prefix');
+    }
   });
 
   it('rejects TTL out of range', () => {
@@ -95,15 +165,21 @@ describe('loadConfig', () => {
       ttl: { defaultDays: 0, maxDays: 100 },
     };
     writeConfig(bad);
-    expect(() => loadConfig(TEST_DIR)).toThrow(ConfigError);
+    try {
+      loadConfig(TEST_DIR);
+      expect.unreachable('should throw');
+    } catch (e) {
+      expect(e).toBeInstanceOf(ConfigError);
+      expect((e as ConfigError).message).toContain('/ttl/defaultDays');
+    }
   });
 
-  it('error message names the exact path', () => {
+  it('rejects invalid memory quota format naming JSON path', () => {
     const bad = {
       ...VALID_CONFIG,
       sizes: {
         ...VALID_CONFIG.sizes,
-        small: { cpu: '500m', memory: 'bad', pods: 5 },
+        small: { cpu: '500m', memory: '1024MB', pods: 5 }, // must be Mi or Gi
       },
     };
     writeConfig(bad);
@@ -114,5 +190,11 @@ describe('loadConfig', () => {
       expect(e).toBeInstanceOf(ConfigError);
       expect((e as ConfigError).message).toContain('/sizes/small/memory');
     }
+  });
+});
+
+describe('renderPlatform drift detection', () => {
+  it('detects no drift on cleanly rendered files in REPO_ROOT', () => {
+    expect(() => renderPlatform({ projectRoot: REPO_ROOT, checkOnly: true })).not.toThrow();
   });
 });

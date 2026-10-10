@@ -12,6 +12,9 @@ Decisions made without explicit user input. Each is the most conservative or por
 - **YAML is the config format** over TOML/JSON because it is the Kubernetes ecosystem lingua franca. (Component: `config/`)
 - **JSON Schema draft-07** for validation, matching Helm's `values.schema.json`. (Component: `devaiportal.config.schema.json`)
 - **Secrets never appear in config YAML** — they live in `.env` only, loaded via `dotenv`. (Component: `config/`, `scripts/`)
+- **Top-level `version: v1` field is mandatory** to enable backward-compatibility checks and explicit schema migration policies. (Component: `devaiportal.config.schema.json`, `config/index.ts`)
+- **Zero-drift generation**: `charts/environment/files/platform.yaml` and Kyverno's registry policy are derived exclusively from `devaiportal.config.yaml` using `make render-platform` (`scripts/render-platform.ts`). CI fails on any uncommitted drift. (Component: `scripts/render-platform.ts`, `Makefile`, `.github/workflows/ci.yml`)
+- **ADR Governance**: All records in `docs/adr/` must adhere to the 8-section Staff-Engineer standard enforced by `scripts/lint-adrs.ts` and tested via Vitest. (Component: `docs/adr/`, `scripts/lint-adrs.ts`)
 
 ## Adapters
 

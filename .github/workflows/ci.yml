@@ -1,0 +1,50 @@
+name: CI & Governance
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  validate-and-test:
+    name: Validation, Tests & Drift Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Validate Example Config against Schema
+        run: npx tsx scripts/validate-config.ts .
+
+      - name: Enforce Architecture Decision Records (ADR) Standard
+        run: npx tsx scripts/lint-adrs.ts
+
+      - name: Check Platform & Kyverno Policy Drift
+        run: npx tsx scripts/render-platform.ts --check
+
+      - name: Run Test Suite (Vitest)
+        run: npx vitest run
+
+  security-scan:
+    name: Secret Leak Detection (Gitleaks)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run Gitleaks
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
