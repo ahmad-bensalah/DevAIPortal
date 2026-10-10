@@ -159,15 +159,30 @@ make test
 
 ## Testing & Quality Assurance
 
-* **Zero-Trust Contract Testing:** Every adapter is verified against contract suites ensuring interchangeable behavior.
-* **Deterministic Evaluation:** The agent includes an evaluation harness testing accuracy against realistic developer queries, schema validity, and prompt-injection resilience.
-* **Schema Conformance:** Invalid configuration halts immediately via pre-commit validation.
+| Suite | Command | Status |
+| :--- | :--- | :--- |
+| **All tests** | `make test` | 10 files, 63 tests passing |
+| **Config schema** | `npx vitest run config/` | 13/13 |
+| **Helm guardrails** | `npx vitest run charts/` | 12/12 (3 valid renders, 7 invalid rejected, 3 golden snapshots) |
+| **Kyverno policies** | `npx vitest run policies/` | 5/5 (structural) |
+| **GitOps rendering** | `npx vitest run gitops/` | 3/3 (all env dirs rendered) |
+| **Adapter contracts** | `npx vitest run adapters/` | 13/13 |
+| **Agent eval (Mock)** | `npx vitest run agent/` | 98.4% accuracy, 100% adversarial refusal (64 cases) |
+| **n8n workflow lint** | `npx vitest run n8n/` | 4/4 |
+| **ADR standard** | `npx tsx scripts/lint-adrs.ts` | All 4 ADRs pass |
+
+For detailed evaluation metrics see [`docs/eval-results.md`](docs/eval-results.md).  
+For honest verification status see [`docs/status.md`](docs/status.md).
 
 ---
 
 ## Documentation
 
 * [Architecture Decision Records (ADRs)](docs/adr/)
+* [Threat Model](docs/threat-model.md)
+* [Limitations](docs/limitations.md)
 * [Operator Runbook](docs/operator-runbook.md)
 * [Credentials & Minimum IAM Scopes](docs/credentials.md)
 * [Architecture Assumptions](docs/assumptions.md)
+* [Evaluation Results](docs/eval-results.md)
+* [Status & Verification Matrix](docs/status.md)

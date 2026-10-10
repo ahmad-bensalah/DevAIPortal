@@ -78,7 +78,9 @@ describe('Remote Notifiers Contract & Fallback', () => {
       requestId: 'req-01',
     });
     expect(result.ok).toBe(false);
-    expect(result.error).toContain('TEAMS_WEBHOOK_URL is not configured');
+    if (!result.ok) {
+      expect(result.error).toContain('TEAMS_WEBHOOK_URL is not configured');
+    }
   });
 
   it('SlackNotifier skips cleanly if SLACK_WEBHOOK_URL is not provided', async () => {
@@ -94,6 +96,8 @@ describe('Remote Notifiers Contract & Fallback', () => {
       requestId: 'req-01',
     });
     expect(result.ok).toBe(false);
-    expect(result.error).toContain('SLACK_WEBHOOK_URL is not configured');
+    if (!result.ok) {
+      expect(result.error).toContain('SLACK_WEBHOOK_URL is not configured');
+    }
   });
 });
