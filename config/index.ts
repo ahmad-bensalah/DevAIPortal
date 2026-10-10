@@ -1,8 +1,12 @@
 import { readFileSync, existsSync } from 'node:fs';
 import { resolve } from 'node:path';
-import Ajv from 'ajv';
-import addFormats from 'ajv-formats';
+import _Ajv from 'ajv';
+import _addFormats from 'ajv-formats';
 import yaml from 'js-yaml';
+
+// Interop with CommonJS/ESM packaging
+const Ajv = (_Ajv as any).default || _Ajv;
+const addFormats = (_addFormats as any).default || _addFormats;
 
 const CONFIG_FILE = 'devaiportal.config.yaml';
 const SCHEMA_FILE = 'devaiportal.config.schema.json';
@@ -103,7 +107,7 @@ export function loadConfig(projectRoot?: string): DevAIPortalConfig {
   const validate = ajv.compile(schema);
 
   if (!validate(config)) {
-    const messages = (validate.errors || []).map((e) => {
+    const messages = (validate.errors || []).map((e: any) => {
       const path = e.instancePath || '(root)';
       return `  ${path}: ${e.message}${e.params ? ` (${JSON.stringify(e.params)})` : ''}`;
     });
