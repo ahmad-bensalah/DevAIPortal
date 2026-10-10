@@ -8,6 +8,7 @@ const CONFIG_FILE = 'devaiportal.config.yaml';
 const SCHEMA_FILE = 'devaiportal.config.schema.json';
 
 export interface DevAIPortalConfig {
+  version: 'v1';
   adapters: {
     llm: 'azure-openai' | 'openai' | 'anthropic' | 'ollama' | 'mock';
     git: 'github' | 'gitlab' | 'gitea';

@@ -3,6 +3,8 @@
 # Schema: devaiportal.config.schema.json
 # Secrets go in .env, not here.
 
+version: v1
+
 adapters:
   llm: mock                # azure-openai | openai | anthropic | ollama | mock
   git: gitea               # github | gitlab | gitea

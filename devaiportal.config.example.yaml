@@ -2,6 +2,8 @@
 # Schema: devaiportal.config.schema.json
 # Secrets are managed via environment variables or secret stores (.env / Key Vault / External Secrets).
 
+version: v1
+
 adapters:
   llm: azure-openai         # azure-openai | openai | anthropic | ollama | mock
   git: github               # github | gitlab | gitea

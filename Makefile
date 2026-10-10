@@ -45,9 +45,28 @@ test: ## Run all tests
 test-watch: ## Run tests in watch mode
 	npx vitest
 
+.PHONY: lint-adrs
+lint-adrs: ## Enforce Staff-Engineer standard on all Architecture Decision Records
+	@npx --yes tsx scripts/lint-adrs.ts
+
+.PHONY: gitleaks
+gitleaks: ## Scan repository for secrets using gitleaks
+	@if command -v gitleaks &>/dev/null; then \
+		gitleaks detect --verbose --redact; \
+	elif docker info &>/dev/null; then \
+		docker run --rm -v "$$(pwd):/path" zricethezav/gitleaks:latest detect --source="/path" --verbose --redact; \
+	else \
+		echo "Notice: Neither gitleaks binary nor Docker daemon available for local secret scan."; \
+		exit 0; \
+	fi
+
 .PHONY: render-platform
-render-platform: ## Generate charts/environment/files/platform.yaml from config
-	@echo "TODO: implement in step 1"
+render-platform: ## Generate platform.yaml and Kyverno registry policy from config
+	@npx --yes tsx scripts/render-platform.ts
+
+.PHONY: check-platform-drift
+check-platform-drift: ## Verify platform.yaml and Kyverno policies match config (CI)
+	@npx --yes tsx scripts/render-platform.ts --check
 
 # ──────────────────────────────────────────────────────────────
 # Cluster Lifecycle

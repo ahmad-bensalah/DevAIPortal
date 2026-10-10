@@ -5,6 +5,7 @@
   "description": "Non-secret configuration for DevAIPortal. Secrets belong in .env.",
   "type": "object",
   "required": [
+    "version",
     "adapters",
     "cluster",
     "namespaces",
@@ -14,6 +15,11 @@
   ],
   "additionalProperties": false,
   "properties": {
+    "version": {
+      "type": "string",
+      "enum": ["v1"],
+      "description": "Configuration schema version for migration and backward-compatibility tracking."
+    },
     "adapters": {
       "type": "object",
       "description": "Adapter selection. Each key names a concern; the value selects the implementation.",

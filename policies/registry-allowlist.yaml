@@ -1,0 +1,29 @@
+# AUTO-GENERATED from devaiportal.config.yaml by scripts/render-platform.ts
+# DO NOT EDIT DIRECTLY. Run 'make render-platform' to update.
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: check-image-registry
+  annotations:
+    policies.kyverno.io/title: Allowed Image Registries
+    policies.kyverno.io/category: Supply Chain Security
+    policies.kyverno.io/severity: medium
+    policies.kyverno.io/description: Validates that all container images come exclusively from platform-approved registries.
+spec:
+  validationFailureAction: Enforce
+  background: true
+  rules:
+    - name: validate-registries
+      match:
+        any:
+          - resources:
+              kinds:
+                - Pod
+              namespaces:
+                - env-*
+      validate:
+        message: Images must originate from authorized registries (docker.io, ghcr.io, registry.k8s.io).
+        pattern:
+          spec:
+            containers:
+              - image: docker.io/* | ghcr.io/* | registry.k8s.io/*

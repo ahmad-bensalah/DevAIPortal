@@ -1,0 +1,32 @@
+# AUTO-GENERATED from devaiportal.config.yaml by scripts/render-platform.ts
+# DO NOT EDIT DIRECTLY. Run 'make render-platform' to update.
+sizes:
+  small:
+    cpu: 500m
+    memory: 512Mi
+    pods: 5
+  medium:
+    cpu: '2'
+    memory: 2Gi
+    pods: 15
+  large:
+    cpu: '8'
+    memory: 8Gi
+    pods: 30
+cluster:
+  baseDomain: dev.local
+  ingressClass: nginx
+  ingressNamespace: ingress-nginx
+  clusterIssuer: ''
+namespaces:
+  prefix: env
+  allowedRegistries:
+    - docker.io
+    - ghcr.io
+    - registry.k8s.io
+ttl:
+  defaultDays: 3
+  maxDays: 14
+approval:
+  requireAboveSize: medium
+  requireAboveTtlDays: 7
