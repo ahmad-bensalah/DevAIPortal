@@ -1,0 +1,10 @@
+name: bad-ingress-internal
+blueprint: internal-service
+owner: dev@example.com
+team: payments
+size: small
+image: docker.io/redis:7.2.4-alpine
+expiresAt: "2026-10-15T12:00:00Z"
+requestId: req-bad-internal-001
+port: 6379
+ingress: true

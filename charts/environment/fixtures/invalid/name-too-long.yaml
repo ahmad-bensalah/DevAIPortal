@@ -1,0 +1,9 @@
+name: a-very-long-environment-name-that-exceeds-the-maximum-forty-characters-limit-now
+blueprint: web
+owner: dev@example.com
+team: payments
+size: small
+image: docker.io/nginx:1.27.0-alpine
+expiresAt: "2026-10-15T12:00:00Z"
+requestId: req-bad-name-001
+port: 8080

@@ -23,3 +23,21 @@ devaiportal.io/size: {{ .Values.size }}
 devaiportal.io/expires-at: {{ .Values.expiresAt | quote }}
 devaiportal.io/request-id: {{ .Values.requestId | quote }}
 {{- end -}}
+
+{{- define "environment.validateImage" -}}
+{{- $platform := .Files.Get "files/platform.yaml" | fromYaml -}}
+{{- $image := .Values.image -}}
+{{- if hasSuffix ":latest" $image -}}
+  {{- fail (printf "Image '%s' uses forbidden ':latest' tag" $image) -}}
+{{- end -}}
+{{- $allowed := $platform.namespaces.allowedRegistries -}}
+{{- $valid := false -}}
+{{- range $reg := $allowed -}}
+  {{- if or (hasPrefix (printf "%s/" $reg) $image) (and (eq $reg "docker.io") (not (contains "/" $image))) -}}
+    {{- $valid = true -}}
+  {{- end -}}
+{{- end -}}
+{{- if not $valid -}}
+  {{- fail (printf "Image '%s' is not from an allowed registry: %v" $image $allowed) -}}
+{{- end -}}
+{{- end -}}

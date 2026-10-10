@@ -3,6 +3,7 @@
 {{- $sizeTier := get $platform.sizes .Values.size -}}
 
 {{- if or (eq .Values.blueprint "web") (eq .Values.blueprint "internal-service") }}
+{{- include "environment.validateImage" . -}}
 apiVersion: apps/v1
 kind: Deployment
 metadata:

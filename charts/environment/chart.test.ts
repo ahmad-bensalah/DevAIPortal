@@ -33,15 +33,34 @@ describe('Helm Environment Blueprint Tests', () => {
       expect(output).toContain('name: allow-team-ingress');
     });
 
-    it('renders batch blueprint with CronJob and emptyDir tmp mount', () => {
+    it('matches golden rendered snapshot for web blueprint', () => {
+      const output = execSync(
+        `helm template test-web ${CHART_PATH} -f ${VALID_DIR}/web.yaml`,
+        { encoding: 'utf-8' }
+      );
+      const fs = require('node:fs');
+      const expected = fs.readFileSync(resolve(CHART_PATH, 'snapshots/web.golden.yaml'), 'utf-8');
+      expect(output.trim()).toBe(expected.trim());
+    });
+
+    it('matches golden rendered snapshot for internal-service blueprint', () => {
+      const output = execSync(
+        `helm template test-internal ${CHART_PATH} -f ${VALID_DIR}/internal-service.yaml`,
+        { encoding: 'utf-8' }
+      );
+      const fs = require('node:fs');
+      const expected = fs.readFileSync(resolve(CHART_PATH, 'snapshots/internal-service.golden.yaml'), 'utf-8');
+      expect(output.trim()).toBe(expected.trim());
+    });
+
+    it('matches golden rendered snapshot for batch blueprint', () => {
       const output = execSync(
         `helm template test-batch ${CHART_PATH} -f ${VALID_DIR}/batch.yaml`,
         { encoding: 'utf-8' }
       );
-      expect(output).toContain('kind: CronJob');
-      expect(output).toContain('concurrencyPolicy: Forbid');
-      expect(output).toContain('schedule: "0 */4 * * *"');
-      expect(output).not.toContain('kind: Deployment');
+      const fs = require('node:fs');
+      const expected = fs.readFileSync(resolve(CHART_PATH, 'snapshots/batch.golden.yaml'), 'utf-8');
+      expect(output.trim()).toBe(expected.trim());
     });
   });
 
@@ -65,6 +84,66 @@ describe('Helm Environment Blueprint Tests', () => {
           }
         );
       }).toThrow(/missing properties 'schedule', 'command'/);
+    });
+
+    it('rejects image with forbidden :latest tag', () => {
+      expect(() => {
+        execSync(
+          `helm template test-bad ${CHART_PATH} -f ${INVALID_DIR}/latest-tag.yaml`,
+          {
+            encoding: 'utf-8',
+            stdio: 'pipe',
+          }
+        );
+      }).toThrow(/uses forbidden ':latest' tag/);
+    });
+
+    it('rejects image outside allowed registries', () => {
+      expect(() => {
+        execSync(
+          `helm template test-bad ${CHART_PATH} -f ${INVALID_DIR}/bad-registry.yaml`,
+          {
+            encoding: 'utf-8',
+            stdio: 'pipe',
+          }
+        );
+      }).toThrow(/is not from an allowed registry/);
+    });
+
+    it('rejects ingress on internal-service blueprint', () => {
+      expect(() => {
+        execSync(
+          `helm template test-bad ${CHART_PATH} -f ${INVALID_DIR}/ingress-on-internal.yaml`,
+          {
+            encoding: 'utf-8',
+            stdio: 'pipe',
+          }
+        );
+      }).toThrow(/'allOf' failed|'not' failed/);
+    });
+
+    it('rejects unknown fields via schema additionalProperties:false', () => {
+      expect(() => {
+        execSync(
+          `helm template test-bad ${CHART_PATH} -f ${INVALID_DIR}/unknown-field.yaml`,
+          {
+            encoding: 'utf-8',
+            stdio: 'pipe',
+          }
+        );
+      }).toThrow(/additional properties 'unauthorizedBackdoorField' not allowed/);
+    });
+
+    it('rejects environment name longer than 40 chars', () => {
+      expect(() => {
+        execSync(
+          `helm template test-bad ${CHART_PATH} -f ${INVALID_DIR}/name-too-long.yaml`,
+          {
+            encoding: 'utf-8',
+            stdio: 'pipe',
+          }
+        );
+      }).toThrow(/pattern/);
     });
   });
 });

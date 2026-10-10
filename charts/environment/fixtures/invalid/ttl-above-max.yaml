@@ -1,0 +1,10 @@
+name: invalid-ttl-above-max
+blueprint: web
+owner: dev@example.com
+team: payments
+size: small
+image: docker.io/nginx:1.27.0-alpine
+expiresAt: "2099-01-01T00:00:00Z"
+requestId: req-bad-ttl-001
+port: 8080
+ttlDays: 90

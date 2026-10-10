@@ -1,0 +1,337 @@
+---
+# Source: environment/templates/baseline.yaml
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: env-orders-api
+  labels:
+    app.kubernetes.io/name: orders-api
+    app.kubernetes.io/instance: orders-api
+    app.kubernetes.io/managed-by: ArgoCD
+    devaiportal.io/managed: "true"
+    devaiportal.io/blueprint: internal-service
+    devaiportal.io/owner: "bob@company.com"
+    devaiportal.io/team: ordering
+    devaiportal.io/size: medium
+    pod-security.kubernetes.io/enforce: restricted
+    pod-security.kubernetes.io/enforce-version: latest
+    pod-security.kubernetes.io/audit: restricted
+    pod-security.kubernetes.io/warn: restricted
+  annotations:
+    devaiportal.io/expires-at: "2026-10-15T08:00:00Z"
+    devaiportal.io/request-id: "req-valid-internal-01"
+---
+# Source: environment/templates/networkpolicies.yaml
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-all
+  namespace: env-orders-api
+  labels:
+    app.kubernetes.io/name: orders-api
+    app.kubernetes.io/instance: orders-api
+    app.kubernetes.io/managed-by: ArgoCD
+    devaiportal.io/managed: "true"
+    devaiportal.io/blueprint: internal-service
+    devaiportal.io/owner: "bob@company.com"
+    devaiportal.io/team: ordering
+    devaiportal.io/size: medium
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+    - Egress
+  egress:
+    # Always allow CoreDNS egress
+    - to:
+        - namespaceSelector: {}
+          podSelector:
+            matchLabels:
+              k8s-app: kube-dns
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+    # Allow intra-namespace communication
+    - to:
+        - podSelector: {}
+  ingress:
+    # Allow intra-namespace communication
+    - from:
+        - podSelector: {}
+---
+# Source: environment/templates/networkpolicies.yaml
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-team-ingress
+  namespace: env-orders-api
+  labels:
+    app.kubernetes.io/name: orders-api
+    app.kubernetes.io/instance: orders-api
+    app.kubernetes.io/managed-by: ArgoCD
+    devaiportal.io/managed: "true"
+    devaiportal.io/blueprint: internal-service
+    devaiportal.io/owner: "bob@company.com"
+    devaiportal.io/team: ordering
+    devaiportal.io/size: medium
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: orders-api
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              devaiportal.io/team: ordering
+      ports:
+        - protocol: TCP
+          port: 3000
+---
+# Source: environment/templates/networkpolicies.yaml
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-internet-https
+  namespace: env-orders-api
+  labels:
+    app.kubernetes.io/name: orders-api
+    app.kubernetes.io/instance: orders-api
+    app.kubernetes.io/managed-by: ArgoCD
+    devaiportal.io/managed: "true"
+    devaiportal.io/blueprint: internal-service
+    devaiportal.io/owner: "bob@company.com"
+    devaiportal.io/team: ordering
+    devaiportal.io/size: medium
+spec:
+  podSelector: {}
+  policyTypes:
+    - Egress
+  egress:
+    - to:
+        - ipBlock:
+            cidr: 0.0.0.0/0
+            except:
+              - 10.0.0.0/8
+              - 172.16.0.0/12
+              - 192.168.0.0/16
+              - 169.254.0.0/16
+      ports:
+        - protocol: TCP
+          port: 443
+---
+# Source: environment/templates/baseline.yaml
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: compute-quota
+  namespace: env-orders-api
+  labels:
+    app.kubernetes.io/name: orders-api
+    app.kubernetes.io/instance: orders-api
+    app.kubernetes.io/managed-by: ArgoCD
+    devaiportal.io/managed: "true"
+    devaiportal.io/blueprint: internal-service
+    devaiportal.io/owner: "bob@company.com"
+    devaiportal.io/team: ordering
+    devaiportal.io/size: medium
+spec:
+  hard:
+    limits.cpu: "2"
+    limits.memory: "2Gi"
+    requests.cpu: "2"
+    requests.memory: "2Gi"
+    pods: "15"
+---
+# Source: environment/templates/baseline.yaml
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: resource-limits
+  namespace: env-orders-api
+  labels:
+    app.kubernetes.io/name: orders-api
+    app.kubernetes.io/instance: orders-api
+    app.kubernetes.io/managed-by: ArgoCD
+    devaiportal.io/managed: "true"
+    devaiportal.io/blueprint: internal-service
+    devaiportal.io/owner: "bob@company.com"
+    devaiportal.io/team: ordering
+    devaiportal.io/size: medium
+spec:
+  limits:
+    - type: Container
+      default:
+        cpu: "2"
+        memory: "2Gi"
+      defaultRequest:
+        cpu: "100m"
+        memory: "128Mi"
+---
+# Source: environment/templates/baseline.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: default-workload
+  namespace: env-orders-api
+  labels:
+    app.kubernetes.io/name: orders-api
+    app.kubernetes.io/instance: orders-api
+    app.kubernetes.io/managed-by: ArgoCD
+    devaiportal.io/managed: "true"
+    devaiportal.io/blueprint: internal-service
+    devaiportal.io/owner: "bob@company.com"
+    devaiportal.io/team: ordering
+    devaiportal.io/size: medium
+automountServiceAccountToken: false
+---
+# Source: environment/templates/baseline.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: environment-developer
+  namespace: env-orders-api
+  labels:
+    app.kubernetes.io/name: orders-api
+    app.kubernetes.io/instance: orders-api
+    app.kubernetes.io/managed-by: ArgoCD
+    devaiportal.io/managed: "true"
+    devaiportal.io/blueprint: internal-service
+    devaiportal.io/owner: "bob@company.com"
+    devaiportal.io/team: ordering
+    devaiportal.io/size: medium
+rules:
+  - apiGroups: ["", "apps", "batch"]
+    resources: ["pods", "pods/log", "services", "deployments", "cronjobs", "jobs"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: [""]
+    resources: ["pods/portforward", "pods/exec"]
+    verbs: ["create"]
+---
+# Source: environment/templates/baseline.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: environment-developer-binding
+  namespace: env-orders-api
+  labels:
+    app.kubernetes.io/name: orders-api
+    app.kubernetes.io/instance: orders-api
+    app.kubernetes.io/managed-by: ArgoCD
+    devaiportal.io/managed: "true"
+    devaiportal.io/blueprint: internal-service
+    devaiportal.io/owner: "bob@company.com"
+    devaiportal.io/team: ordering
+    devaiportal.io/size: medium
+subjects:
+  - kind: Group
+    name: team-ordering
+    apiGroup: rbac.authorization.k8s.io
+roleRef:
+  kind: Role
+  name: environment-developer
+  apiGroup: rbac.authorization.k8s.io
+---
+# Source: environment/templates/workload-service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: orders-api
+  namespace: env-orders-api
+  labels:
+    app.kubernetes.io/name: orders-api
+    app.kubernetes.io/instance: orders-api
+    app.kubernetes.io/managed-by: ArgoCD
+    devaiportal.io/managed: "true"
+    devaiportal.io/blueprint: internal-service
+    devaiportal.io/owner: "bob@company.com"
+    devaiportal.io/team: ordering
+    devaiportal.io/size: medium
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: orders-api
+  ports:
+    - port: 3000
+      targetPort: http
+      name: http
+      protocol: TCP
+---
+# Source: environment/templates/workload-service.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: orders-api
+  namespace: env-orders-api
+  labels:
+    app.kubernetes.io/name: orders-api
+    app.kubernetes.io/instance: orders-api
+    app.kubernetes.io/managed-by: ArgoCD
+    devaiportal.io/managed: "true"
+    devaiportal.io/blueprint: internal-service
+    devaiportal.io/owner: "bob@company.com"
+    devaiportal.io/team: ordering
+    devaiportal.io/size: medium
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: orders-api
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: orders-api
+        app.kubernetes.io/instance: orders-api
+        app.kubernetes.io/managed-by: ArgoCD
+        devaiportal.io/managed: "true"
+        devaiportal.io/blueprint: internal-service
+        devaiportal.io/owner: "bob@company.com"
+        devaiportal.io/team: ordering
+        devaiportal.io/size: medium
+    spec:
+      serviceAccountName: default-workload
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: app
+          image: ghcr.io/company/orders:v1.2.0
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            readOnlyRootFilesystem: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+          ports:
+            - containerPort: 3000
+              name: http
+              protocol: TCP
+          resources:
+            limits:
+              cpu: "2"
+              memory: "2Gi"
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+          readinessProbe:
+            tcpSocket:
+              port: 3000
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            tcpSocket:
+              port: 3000
+            initialDelaySeconds: 10
+            periodSeconds: 15
+          volumeMounts:
+            - name: tmp-volume
+              mountPath: /tmp
+      volumes:
+        - name: tmp-volume
+          emptyDir: {}

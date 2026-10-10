@@ -1,0 +1,248 @@
+---
+# Source: environment/templates/baseline.yaml
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: env-analytics-etl
+  labels:
+    app.kubernetes.io/name: analytics-etl
+    app.kubernetes.io/instance: analytics-etl
+    app.kubernetes.io/managed-by: ArgoCD
+    devaiportal.io/managed: "true"
+    devaiportal.io/blueprint: batch
+    devaiportal.io/owner: "charlie@company.com"
+    devaiportal.io/team: data
+    devaiportal.io/size: large
+    pod-security.kubernetes.io/enforce: restricted
+    pod-security.kubernetes.io/enforce-version: latest
+    pod-security.kubernetes.io/audit: restricted
+    pod-security.kubernetes.io/warn: restricted
+  annotations:
+    devaiportal.io/expires-at: "2026-10-18T18:00:00Z"
+    devaiportal.io/request-id: "req-valid-batch-01"
+---
+# Source: environment/templates/networkpolicies.yaml
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-all
+  namespace: env-analytics-etl
+  labels:
+    app.kubernetes.io/name: analytics-etl
+    app.kubernetes.io/instance: analytics-etl
+    app.kubernetes.io/managed-by: ArgoCD
+    devaiportal.io/managed: "true"
+    devaiportal.io/blueprint: batch
+    devaiportal.io/owner: "charlie@company.com"
+    devaiportal.io/team: data
+    devaiportal.io/size: large
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+    - Egress
+  egress:
+    # Always allow CoreDNS egress
+    - to:
+        - namespaceSelector: {}
+          podSelector:
+            matchLabels:
+              k8s-app: kube-dns
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+    # Allow intra-namespace communication
+    - to:
+        - podSelector: {}
+  ingress:
+    # Allow intra-namespace communication
+    - from:
+        - podSelector: {}
+---
+# Source: environment/templates/baseline.yaml
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: compute-quota
+  namespace: env-analytics-etl
+  labels:
+    app.kubernetes.io/name: analytics-etl
+    app.kubernetes.io/instance: analytics-etl
+    app.kubernetes.io/managed-by: ArgoCD
+    devaiportal.io/managed: "true"
+    devaiportal.io/blueprint: batch
+    devaiportal.io/owner: "charlie@company.com"
+    devaiportal.io/team: data
+    devaiportal.io/size: large
+spec:
+  hard:
+    limits.cpu: "8"
+    limits.memory: "8Gi"
+    requests.cpu: "8"
+    requests.memory: "8Gi"
+    pods: "30"
+---
+# Source: environment/templates/baseline.yaml
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: resource-limits
+  namespace: env-analytics-etl
+  labels:
+    app.kubernetes.io/name: analytics-etl
+    app.kubernetes.io/instance: analytics-etl
+    app.kubernetes.io/managed-by: ArgoCD
+    devaiportal.io/managed: "true"
+    devaiportal.io/blueprint: batch
+    devaiportal.io/owner: "charlie@company.com"
+    devaiportal.io/team: data
+    devaiportal.io/size: large
+spec:
+  limits:
+    - type: Container
+      default:
+        cpu: "8"
+        memory: "8Gi"
+      defaultRequest:
+        cpu: "100m"
+        memory: "128Mi"
+---
+# Source: environment/templates/baseline.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: default-workload
+  namespace: env-analytics-etl
+  labels:
+    app.kubernetes.io/name: analytics-etl
+    app.kubernetes.io/instance: analytics-etl
+    app.kubernetes.io/managed-by: ArgoCD
+    devaiportal.io/managed: "true"
+    devaiportal.io/blueprint: batch
+    devaiportal.io/owner: "charlie@company.com"
+    devaiportal.io/team: data
+    devaiportal.io/size: large
+automountServiceAccountToken: false
+---
+# Source: environment/templates/baseline.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: environment-developer
+  namespace: env-analytics-etl
+  labels:
+    app.kubernetes.io/name: analytics-etl
+    app.kubernetes.io/instance: analytics-etl
+    app.kubernetes.io/managed-by: ArgoCD
+    devaiportal.io/managed: "true"
+    devaiportal.io/blueprint: batch
+    devaiportal.io/owner: "charlie@company.com"
+    devaiportal.io/team: data
+    devaiportal.io/size: large
+rules:
+  - apiGroups: ["", "apps", "batch"]
+    resources: ["pods", "pods/log", "services", "deployments", "cronjobs", "jobs"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: [""]
+    resources: ["pods/portforward", "pods/exec"]
+    verbs: ["create"]
+---
+# Source: environment/templates/baseline.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: environment-developer-binding
+  namespace: env-analytics-etl
+  labels:
+    app.kubernetes.io/name: analytics-etl
+    app.kubernetes.io/instance: analytics-etl
+    app.kubernetes.io/managed-by: ArgoCD
+    devaiportal.io/managed: "true"
+    devaiportal.io/blueprint: batch
+    devaiportal.io/owner: "charlie@company.com"
+    devaiportal.io/team: data
+    devaiportal.io/size: large
+subjects:
+  - kind: Group
+    name: team-data
+    apiGroup: rbac.authorization.k8s.io
+roleRef:
+  kind: Role
+  name: environment-developer
+  apiGroup: rbac.authorization.k8s.io
+---
+# Source: environment/templates/workload-batch.yaml
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: analytics-etl
+  namespace: env-analytics-etl
+  labels:
+    app.kubernetes.io/name: analytics-etl
+    app.kubernetes.io/instance: analytics-etl
+    app.kubernetes.io/managed-by: ArgoCD
+    devaiportal.io/managed: "true"
+    devaiportal.io/blueprint: batch
+    devaiportal.io/owner: "charlie@company.com"
+    devaiportal.io/team: data
+    devaiportal.io/size: large
+spec:
+  schedule: "0 */4 * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  startingDeadlineSeconds: 120
+  jobTemplate:
+    spec:
+      backoffLimit: 2
+      ttlSecondsAfterFinished: 86400
+      template:
+        metadata:
+          labels:
+            app.kubernetes.io/name: analytics-etl
+            app.kubernetes.io/instance: analytics-etl
+            app.kubernetes.io/managed-by: ArgoCD
+            devaiportal.io/managed: "true"
+            devaiportal.io/blueprint: batch
+            devaiportal.io/owner: "charlie@company.com"
+            devaiportal.io/team: data
+            devaiportal.io/size: large
+        spec:
+          serviceAccountName: default-workload
+          restartPolicy: OnFailure
+          securityContext:
+            runAsNonRoot: true
+            seccompProfile:
+              type: RuntimeDefault
+          containers:
+            - name: job
+              image: registry.k8s.io/busybox:1.36.1
+              imagePullPolicy: IfNotPresent
+              command:
+                - /bin/sh
+                - -c
+                - echo processing batch analytics
+              securityContext:
+                readOnlyRootFilesystem: true
+                allowPrivilegeEscalation: false
+                capabilities:
+                  drop:
+                    - ALL
+              resources:
+                limits:
+                  cpu: "8"
+                  memory: "8Gi"
+                requests:
+                  cpu: "100m"
+                  memory: "128Mi"
+              volumeMounts:
+                - name: tmp-volume
+                  mountPath: /tmp
+          volumes:
+            - name: tmp-volume
+              emptyDir: {}
+---
+# Source: environment/templates/networkpolicies.yaml
+---

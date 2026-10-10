@@ -1,0 +1,335 @@
+---
+# Source: environment/templates/baseline.yaml
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: env-payments-web
+  labels:
+    app.kubernetes.io/name: payments-web
+    app.kubernetes.io/instance: payments-web
+    app.kubernetes.io/managed-by: ArgoCD
+    devaiportal.io/managed: "true"
+    devaiportal.io/blueprint: web
+    devaiportal.io/owner: "alice@company.com"
+    devaiportal.io/team: payments
+    devaiportal.io/size: small
+    pod-security.kubernetes.io/enforce: restricted
+    pod-security.kubernetes.io/enforce-version: latest
+    pod-security.kubernetes.io/audit: restricted
+    pod-security.kubernetes.io/warn: restricted
+  annotations:
+    devaiportal.io/expires-at: "2026-10-14T12:00:00Z"
+    devaiportal.io/request-id: "req-valid-web-01"
+---
+# Source: environment/templates/networkpolicies.yaml
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-all
+  namespace: env-payments-web
+  labels:
+    app.kubernetes.io/name: payments-web
+    app.kubernetes.io/instance: payments-web
+    app.kubernetes.io/managed-by: ArgoCD
+    devaiportal.io/managed: "true"
+    devaiportal.io/blueprint: web
+    devaiportal.io/owner: "alice@company.com"
+    devaiportal.io/team: payments
+    devaiportal.io/size: small
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+    - Egress
+  egress:
+    # Always allow CoreDNS egress
+    - to:
+        - namespaceSelector: {}
+          podSelector:
+            matchLabels:
+              k8s-app: kube-dns
+      ports:
+        - protocol: UDP
+          port: 53
+        - protocol: TCP
+          port: 53
+    # Allow intra-namespace communication
+    - to:
+        - podSelector: {}
+  ingress:
+    # Allow intra-namespace communication
+    - from:
+        - podSelector: {}
+---
+# Source: environment/templates/networkpolicies.yaml
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-ingress-controller
+  namespace: env-payments-web
+  labels:
+    app.kubernetes.io/name: payments-web
+    app.kubernetes.io/instance: payments-web
+    app.kubernetes.io/managed-by: ArgoCD
+    devaiportal.io/managed: "true"
+    devaiportal.io/blueprint: web
+    devaiportal.io/owner: "alice@company.com"
+    devaiportal.io/team: payments
+    devaiportal.io/size: small
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: payments-web
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: ingress-nginx
+      ports:
+        - protocol: TCP
+          port: 8080
+---
+# Source: environment/templates/baseline.yaml
+apiVersion: v1
+kind: ResourceQuota
+metadata:
+  name: compute-quota
+  namespace: env-payments-web
+  labels:
+    app.kubernetes.io/name: payments-web
+    app.kubernetes.io/instance: payments-web
+    app.kubernetes.io/managed-by: ArgoCD
+    devaiportal.io/managed: "true"
+    devaiportal.io/blueprint: web
+    devaiportal.io/owner: "alice@company.com"
+    devaiportal.io/team: payments
+    devaiportal.io/size: small
+spec:
+  hard:
+    limits.cpu: "500m"
+    limits.memory: "512Mi"
+    requests.cpu: "500m"
+    requests.memory: "512Mi"
+    pods: "5"
+---
+# Source: environment/templates/baseline.yaml
+apiVersion: v1
+kind: LimitRange
+metadata:
+  name: resource-limits
+  namespace: env-payments-web
+  labels:
+    app.kubernetes.io/name: payments-web
+    app.kubernetes.io/instance: payments-web
+    app.kubernetes.io/managed-by: ArgoCD
+    devaiportal.io/managed: "true"
+    devaiportal.io/blueprint: web
+    devaiportal.io/owner: "alice@company.com"
+    devaiportal.io/team: payments
+    devaiportal.io/size: small
+spec:
+  limits:
+    - type: Container
+      default:
+        cpu: "500m"
+        memory: "512Mi"
+      defaultRequest:
+        cpu: "100m"
+        memory: "128Mi"
+---
+# Source: environment/templates/baseline.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: default-workload
+  namespace: env-payments-web
+  labels:
+    app.kubernetes.io/name: payments-web
+    app.kubernetes.io/instance: payments-web
+    app.kubernetes.io/managed-by: ArgoCD
+    devaiportal.io/managed: "true"
+    devaiportal.io/blueprint: web
+    devaiportal.io/owner: "alice@company.com"
+    devaiportal.io/team: payments
+    devaiportal.io/size: small
+automountServiceAccountToken: false
+---
+# Source: environment/templates/baseline.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: environment-developer
+  namespace: env-payments-web
+  labels:
+    app.kubernetes.io/name: payments-web
+    app.kubernetes.io/instance: payments-web
+    app.kubernetes.io/managed-by: ArgoCD
+    devaiportal.io/managed: "true"
+    devaiportal.io/blueprint: web
+    devaiportal.io/owner: "alice@company.com"
+    devaiportal.io/team: payments
+    devaiportal.io/size: small
+rules:
+  - apiGroups: ["", "apps", "batch"]
+    resources: ["pods", "pods/log", "services", "deployments", "cronjobs", "jobs"]
+    verbs: ["get", "list", "watch"]
+  - apiGroups: [""]
+    resources: ["pods/portforward", "pods/exec"]
+    verbs: ["create"]
+---
+# Source: environment/templates/baseline.yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: environment-developer-binding
+  namespace: env-payments-web
+  labels:
+    app.kubernetes.io/name: payments-web
+    app.kubernetes.io/instance: payments-web
+    app.kubernetes.io/managed-by: ArgoCD
+    devaiportal.io/managed: "true"
+    devaiportal.io/blueprint: web
+    devaiportal.io/owner: "alice@company.com"
+    devaiportal.io/team: payments
+    devaiportal.io/size: small
+subjects:
+  - kind: Group
+    name: team-payments
+    apiGroup: rbac.authorization.k8s.io
+roleRef:
+  kind: Role
+  name: environment-developer
+  apiGroup: rbac.authorization.k8s.io
+---
+# Source: environment/templates/workload-service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: payments-web
+  namespace: env-payments-web
+  labels:
+    app.kubernetes.io/name: payments-web
+    app.kubernetes.io/instance: payments-web
+    app.kubernetes.io/managed-by: ArgoCD
+    devaiportal.io/managed: "true"
+    devaiportal.io/blueprint: web
+    devaiportal.io/owner: "alice@company.com"
+    devaiportal.io/team: payments
+    devaiportal.io/size: small
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: payments-web
+  ports:
+    - port: 8080
+      targetPort: http
+      name: http
+      protocol: TCP
+---
+# Source: environment/templates/workload-service.yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: payments-web
+  namespace: env-payments-web
+  labels:
+    app.kubernetes.io/name: payments-web
+    app.kubernetes.io/instance: payments-web
+    app.kubernetes.io/managed-by: ArgoCD
+    devaiportal.io/managed: "true"
+    devaiportal.io/blueprint: web
+    devaiportal.io/owner: "alice@company.com"
+    devaiportal.io/team: payments
+    devaiportal.io/size: small
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: payments-web
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: payments-web
+        app.kubernetes.io/instance: payments-web
+        app.kubernetes.io/managed-by: ArgoCD
+        devaiportal.io/managed: "true"
+        devaiportal.io/blueprint: web
+        devaiportal.io/owner: "alice@company.com"
+        devaiportal.io/team: payments
+        devaiportal.io/size: small
+    spec:
+      serviceAccountName: default-workload
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: app
+          image: docker.io/library/nginx:1.27.2
+          imagePullPolicy: IfNotPresent
+          securityContext:
+            readOnlyRootFilesystem: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop:
+                - ALL
+          ports:
+            - containerPort: 8080
+              name: http
+              protocol: TCP
+          resources:
+            limits:
+              cpu: "500m"
+              memory: "512Mi"
+            requests:
+              cpu: "100m"
+              memory: "128Mi"
+          readinessProbe:
+            tcpSocket:
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            tcpSocket:
+              port: 8080
+            initialDelaySeconds: 10
+            periodSeconds: 15
+          volumeMounts:
+            - name: tmp-volume
+              mountPath: /tmp
+      volumes:
+        - name: tmp-volume
+          emptyDir: {}
+---
+# Source: environment/templates/workload-service.yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: payments-web
+  namespace: env-payments-web
+  labels:
+    app.kubernetes.io/name: payments-web
+    app.kubernetes.io/instance: payments-web
+    app.kubernetes.io/managed-by: ArgoCD
+    devaiportal.io/managed: "true"
+    devaiportal.io/blueprint: web
+    devaiportal.io/owner: "alice@company.com"
+    devaiportal.io/team: payments
+    devaiportal.io/size: small
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: payments-web.dev.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: payments-web
+                port:
+                  number: 8080

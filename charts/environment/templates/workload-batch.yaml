@@ -3,6 +3,7 @@
 {{- $sizeTier := get $platform.sizes .Values.size -}}
 
 {{- if eq .Values.blueprint "batch" }}
+{{- include "environment.validateImage" . -}}
 apiVersion: batch/v1
 kind: CronJob
 metadata:

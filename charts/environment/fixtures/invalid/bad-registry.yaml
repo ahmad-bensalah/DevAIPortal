@@ -1,0 +1,9 @@
+name: bad-reg-env
+blueprint: web
+owner: dev@example.com
+team: payments
+size: small
+image: evil-registry.io/crypto-miner:v1.0.0
+expiresAt: "2026-10-15T12:00:00Z"
+requestId: req-bad-reg-001
+port: 8080
