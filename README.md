@@ -117,8 +117,8 @@ External systems operate behind typed contracts (`interfaces`). Adapters are sel
 ### Installation & Preflight
 ```bash
 # 1. Clone repository
-git clone https://github.com/enterprise-org/devaiportal.git
-cd devaiportal
+git clone git@github.com:ahmad-bensalah/DevAIPortal.git
+cd DevAIPortal
 
 # 2. Install platform dependencies
 make deps
