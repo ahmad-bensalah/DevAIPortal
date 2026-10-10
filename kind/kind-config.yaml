@@ -1,0 +1,29 @@
+# kind cluster configuration for DevPortal IA demo
+kind: Cluster
+apiVersion: kind.x-k8s.io/v1alpha4
+name: devportal
+nodes:
+  - role: control-plane
+    kubeadmConfigPatches:
+      - |
+        kind: InitConfiguration
+        nodeRegistration:
+          kubeletExtraArgs:
+            node-labels: "ingress-ready=true"
+    extraPortMappings:
+      # Ingress HTTP
+      - containerPort: 80
+        hostPort: 80
+        protocol: TCP
+      # Ingress HTTPS
+      - containerPort: 443
+        hostPort: 443
+        protocol: TCP
+      # n8n
+      - containerPort: 30678
+        hostPort: 5678
+        protocol: TCP
+      # Gitea
+      - containerPort: 30300
+        hostPort: 3000
+        protocol: TCP

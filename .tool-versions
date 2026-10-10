@@ -1,0 +1,5 @@
+nodejs 20.18.0
+helm 3.16.2
+kind 0.24.0
+kubectl 1.31.2
+kyverno-cli 1.13.0

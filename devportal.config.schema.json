@@ -1,0 +1,228 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://devportal.io/config/v1",
+  "title": "DevPortal IA Configuration",
+  "description": "Non-secret configuration for DevPortal IA. Secrets belong in .env.",
+  "type": "object",
+  "required": [
+    "adapters",
+    "cluster",
+    "namespaces",
+    "ttl",
+    "sizes",
+    "approval"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "adapters": {
+      "type": "object",
+      "description": "Adapter selection. Each key names a concern; the value selects the implementation.",
+      "required": ["llm", "git", "notifier", "identity", "secrets"],
+      "additionalProperties": false,
+      "properties": {
+        "llm": {
+          "type": "string",
+          "enum": ["azure-openai", "openai", "anthropic", "ollama", "mock"],
+          "description": "LLM provider for intent extraction."
+        },
+        "git": {
+          "type": "string",
+          "enum": ["github", "gitlab", "gitea"],
+          "description": "Git host for pull request creation."
+        },
+        "notifier": {
+          "type": "string",
+          "enum": ["teams", "slack", "email", "console"],
+          "description": "Notification channel for environment lifecycle events."
+        },
+        "identity": {
+          "type": "string",
+          "enum": ["entra-group", "oidc-group", "static-user"],
+          "description": "Identity-to-RBAC mapper for resolving group membership."
+        },
+        "secrets": {
+          "type": "string",
+          "enum": ["env", "kubernetes", "external-secrets"],
+          "description": "Secret source for runtime credentials."
+        }
+      }
+    },
+    "cluster": {
+      "type": "object",
+      "description": "Target Kubernetes cluster settings.",
+      "required": ["context", "ingressClass"],
+      "additionalProperties": false,
+      "properties": {
+        "context": {
+          "type": "string",
+          "minLength": 1,
+          "description": "kubectl context name for the target cluster."
+        },
+        "baseDomain": {
+          "type": "string",
+          "pattern": "^[a-z0-9]([a-z0-9\\-]*[a-z0-9])?(\\.[a-z0-9]([a-z0-9\\-]*[a-z0-9])?)*$",
+          "description": "Base domain for Ingress hosts (e.g. dev.example.com). Optional for non-web blueprints."
+        },
+        "ingressClass": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Ingress class name (e.g. nginx, traefik, contour)."
+        },
+        "ingressNamespace": {
+          "type": "string",
+          "minLength": 1,
+          "default": "ingress-nginx",
+          "description": "Namespace where the ingress controller runs. Used for NetworkPolicy source."
+        },
+        "clusterIssuer": {
+          "type": "string",
+          "description": "cert-manager ClusterIssuer name for TLS. Omit to disable TLS."
+        }
+      }
+    },
+    "namespaces": {
+      "type": "object",
+      "description": "Namespace naming and registry policy.",
+      "required": ["prefix"],
+      "additionalProperties": false,
+      "properties": {
+        "prefix": {
+          "type": "string",
+          "pattern": "^[a-z][a-z0-9\\-]{0,19}$",
+          "default": "env",
+          "description": "Prefix for generated namespace names: <prefix>-<name>."
+        },
+        "allowedRegistries": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "minLength": 1
+          },
+          "minItems": 1,
+          "description": "Docker registries allowed in image fields. Kyverno and Helm both enforce this."
+        }
+      }
+    },
+    "ttl": {
+      "type": "object",
+      "description": "Time-to-live constraints for ephemeral environments.",
+      "required": ["defaultDays", "maxDays"],
+      "additionalProperties": false,
+      "properties": {
+        "defaultDays": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 30,
+          "description": "Default TTL in days if the user doesn't specify one."
+        },
+        "maxDays": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 90,
+          "description": "Hard upper bound on TTL. Requests above this are refused."
+        }
+      }
+    },
+    "sizes": {
+      "type": "object",
+      "description": "Size-to-resource mapping. The agent picks a size; the platform maps it to quotas.",
+      "required": ["small", "medium", "large"],
+      "additionalProperties": false,
+      "properties": {
+        "small": { "$ref": "#/definitions/sizeSpec" },
+        "medium": { "$ref": "#/definitions/sizeSpec" },
+        "large": { "$ref": "#/definitions/sizeSpec" }
+      }
+    },
+    "approval": {
+      "type": "object",
+      "description": "Conditions that require human approval before provisioning.",
+      "required": ["requireAboveSize", "requireAboveTtlDays"],
+      "additionalProperties": false,
+      "properties": {
+        "requireAboveSize": {
+          "type": "string",
+          "enum": ["small", "medium", "large", "none"],
+          "description": "Requests for sizes strictly above this value require approval. 'none' means all sizes require approval; 'large' means none do."
+        },
+        "requireAboveTtlDays": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 90,
+          "description": "Requests with TTL above this many days require approval."
+        }
+      }
+    },
+    "llm": {
+      "type": "object",
+      "description": "LLM-specific settings (non-secret). Model names, temperature, etc.",
+      "additionalProperties": false,
+      "properties": {
+        "model": {
+          "type": "string",
+          "description": "Model identifier (e.g. gpt-4o, claude-sonnet-4-20250514, llama3)."
+        },
+        "temperature": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 2,
+          "default": 0,
+          "description": "Sampling temperature. 0 for deterministic output."
+        },
+        "maxTokens": {
+          "type": "integer",
+          "minimum": 100,
+          "maximum": 16384,
+          "default": 2048,
+          "description": "Maximum tokens in LLM response."
+        }
+      }
+    },
+    "git": {
+      "type": "object",
+      "description": "Git host settings (non-secret).",
+      "additionalProperties": false,
+      "properties": {
+        "repo": {
+          "type": "string",
+          "description": "Repository in owner/name format (e.g. myorg/devportal-ia)."
+        },
+        "baseBranch": {
+          "type": "string",
+          "default": "main",
+          "description": "Branch that PRs target."
+        },
+        "url": {
+          "type": "string",
+          "format": "uri",
+          "description": "Git host URL (required for gitlab and gitea adapters)."
+        }
+      }
+    }
+  },
+  "definitions": {
+    "sizeSpec": {
+      "type": "object",
+      "required": ["cpu", "memory", "pods"],
+      "additionalProperties": false,
+      "properties": {
+        "cpu": {
+          "type": "string",
+          "pattern": "^[0-9]+(m)?$",
+          "description": "CPU limit for ResourceQuota (e.g. 500m, 2)."
+        },
+        "memory": {
+          "type": "string",
+          "pattern": "^[0-9]+(Mi|Gi)$",
+          "description": "Memory limit for ResourceQuota (e.g. 512Mi, 2Gi)."
+        },
+        "pods": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 100,
+          "description": "Maximum pod count for ResourceQuota."
+        }
+      }
+    }
+  }
+}

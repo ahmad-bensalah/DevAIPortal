@@ -1,0 +1,7 @@
+node_modules/
+.env
+dist/
+*.log
+coverage/
+.nyc_output/
+__test_config_tmp__/

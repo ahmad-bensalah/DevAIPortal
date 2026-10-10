@@ -1,0 +1,57 @@
+# DevPortal IA Configuration
+# Copy to devportal.config.yaml and edit.
+# Schema: devportal.config.schema.json
+# Secrets go in .env, not here.
+
+adapters:
+  llm: mock                # azure-openai | openai | anthropic | ollama | mock
+  git: gitea               # github | gitlab | gitea
+  notifier: console         # teams | slack | email | console
+  identity: static-user     # entra-group | oidc-group | static-user
+  secrets: env              # env | kubernetes | external-secrets
+
+cluster:
+  context: kind-devportal    # kubectl context pointing at target cluster
+  baseDomain: dev.local      # base domain for Ingress hosts (<name>.dev.local)
+  ingressClass: nginx        # ingress class installed in cluster
+  ingressNamespace: ingress-nginx
+  # clusterIssuer: letsencrypt-staging  # uncomment for TLS
+
+namespaces:
+  prefix: env
+  allowedRegistries:
+    - docker.io
+    - ghcr.io
+    - registry.k8s.io
+
+ttl:
+  defaultDays: 3
+  maxDays: 14
+
+sizes:
+  small:
+    cpu: "500m"
+    memory: "512Mi"
+    pods: 5
+  medium:
+    cpu: "2"
+    memory: "2Gi"
+    pods: 15
+  large:
+    cpu: "8"
+    memory: "8Gi"
+    pods: 30
+
+approval:
+  requireAboveSize: medium   # large and above need approval
+  requireAboveTtlDays: 7     # TTL > 7 days needs approval
+
+llm:
+  model: mock
+  temperature: 0
+  maxTokens: 2048
+
+git:
+  repo: devportal/devportal-ia
+  baseBranch: main
+  url: http://localhost:3000  # gitea URL for local demo

@@ -1,0 +1,30 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "Node16",
+    "moduleResolution": "Node16",
+    "lib": ["ES2022"],
+    "outDir": "dist",
+    "rootDir": ".",
+    "strict": true,
+    "esModuleInterop": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true,
+    "resolveJsonModule": true,
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "paths": {
+      "@devportal/agent": ["./agent/src/index.ts"],
+      "@devportal/adapters/*": ["./adapters/*/src/index.ts"],
+      "@devportal/config": ["./config/index.ts"]
+    }
+  },
+  "include": [
+    "agent/src/**/*.ts",
+    "adapters/**/*.ts",
+    "config/**/*.ts",
+    "scripts/**/*.ts"
+  ],
+  "exclude": ["node_modules", "dist"]
+}
