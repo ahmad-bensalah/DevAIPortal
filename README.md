@@ -1,101 +1,173 @@
 # DevAIPortal
 
-Conversational self-service portal for ephemeral Kubernetes environments. A developer asks in natural language for an environment; an LLM agent extracts validated parameters; Helm renders manifests; a Git PR carries the change; ArgoCD deploys it; Kyverno enforces policy and cleans up.
+[![License: Apache 2.0](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
+[![Kubernetes](https://img.shields.io/badge/Kubernetes-v1.31+-326ce5.svg?logo=kubernetes&logoColor=white)](https://kubernetes.io/)
+[![Helm](https://img.shields.io/badge/Helm-v3.16+-0f1689.svg?logo=helm&logoColor=white)](https://helm.sh/)
+[![ArgoCD](https://img.shields.io/badge/GitOps-ArgoCD-ef6b48.svg?logo=argo&logoColor=white)](https://argoproj.github.io/cd/)
+[![Kyverno](https://img.shields.io/badge/Policy-Kyverno-009688.svg?logo=kyverno&logoColor=white)](https://kyverno.io/)
 
-**Core principle: the AI proposes, Git and policies decide.**
+> **Production-grade Internal Developer Platform (IDP)** delivering conversational self-service ephemeral Kubernetes environments via GitOps, deterministic blueprints, and declarative policy enforcement.
 
-## Prerequisites
+---
 
-- Docker
-- kubectl
-- Helm >= 3.16
-- kind >= 0.24
-- make
-- Node.js >= 20
+## Executive Overview
+
+Modern platform teams struggle between two extremes: granting raw `kubectl` access (which compromises cluster security, compliance, and budget governance) or requiring manual DevOps ticketing (which bottlenecks developer delivery velocity).
+
+**DevAIPortal** solves this by establishing a controlled self-service bridge:
+1. **Developers request environments in plain language** (e.g., via Slack, Teams, or Webhook):  
+   `"Need an isolated web service named payment-gateway with a 3-day lifetime for team payments"`
+2. **Deterministic Extraction:** A constrained LLM pipeline converts intent into **strictly typed parameters** validated against a schema contract. The LLM **never** writes manifests and **never** accesses the cluster API.
+3. **Audited Delivery:** GitOps pull requests drive immutable Helm blueprints.
+4. **Active Governance:** ArgoCD synchronizes desired state, while **Kyverno** enforces Pod Security Standards (`restricted`), zero-trust network perimeter isolation, and automated garbage collection when environments expire.
+
+```
++-----------------------------------------------------------------------------------+
+|                                 DEVELOPER PORTAL                                  |
+|  "Deploy payment-svc with 3d TTL"                                                 |
++-----------------------------------------------------------------------------------+
+                                         │
+                                         ▼
++-----------------------------------------------------------------------------------+
+|                        INTENT EXTRACTION & SCHEMA CONTRACT                        |
+|  Agent (Azure OpenAI / Anthropic) ➔ JSON Schema Validation (Deterministic State)  |
++-----------------------------------------------------------------------------------+
+                                         │
+                                         ▼
++-----------------------------------------------------------------------------------+
+|                                GITOPS PULL REQUEST                                |
+|  Git Provider (GitHub / GitLab) ➔ environments/<env-name>/values.yaml             |
++-----------------------------------------------------------------------------------+
+                                         │
+                                         ▼
++-----------------------------------------------------------------------------------+
+|                         KUBERNETES RUNTIME (AKS / EKS)                           |
+|  ArgoCD (ApplicationSet) ➔ Helm Blueprint ➔ Kyverno Admission & Network Policies |
++-----------------------------------------------------------------------------------+
+                                         │
+                                         ▼
++-----------------------------------------------------------------------------------+
+|                         LIFECYCLE & AUTOMATED PURGE                               |
+|  TTL Controller (Kyverno ClusterCleanupPolicy) deletes expired namespaces         |
++-----------------------------------------------------------------------------------+
+```
+
+---
+
+## Architectural Principles
+
+### 1. The Core Invariant
+> **"The AI proposes, Git and declarative policies decide."**
+
+No raw YAML generation. No direct cluster mutations. The LLM outputs strict JSON matching `values.schema.json`. Every cluster state change is auditable in Git version history.
+
+### 2. Defense in Depth
+Every ephemeral environment is provisioned with non-negotiable security baselines:
+* **Namespace Boundary:** Labelled with Pod Security Standards `enforce: restricted`.
+* **Resource Governance:** Mandatory `ResourceQuota` and `LimitRange` derived from standardized tiers (`small`, `medium`, `large`).
+* **Zero-Trust Network:** Default-deny ingress/egress `NetworkPolicy`, explicit DNS egress only, and isolated inter-service communication.
+* **RBAC Hardening:** Namespaced `Role` and `RoleBinding` resolved via identity provider (Azure Entra ID / OIDC). Pod service accounts operate with automounted tokens disabled.
+* **Automated Expiry:** `devaiportal.io/expires-at` RFC3339 metadata drives scheduled namespace deletion via Kyverno `ClusterCleanupPolicy`.
+
+### 3. Hexagonal / Adapter Pattern
+External systems operate behind typed contracts (`interfaces`). Adapters are selected dynamically via configuration:
+
+| Domain | Interface | Enterprise Adapters | Local / Air-Gapped Adapters |
+| :--- | :--- | :--- | :--- |
+| **LLM Engine** | `LlmProvider` | `azure-openai`, `openai`, `anthropic` | `ollama`, `mock` |
+| **Git SCM** | `GitProvider` | `github`, `gitlab` | `gitea` |
+| **Notifications** | `Notifier` | `teams`, `slack`, `email` (SMTP) | `console` |
+| **Identity / RBAC**| `IdentityMapper` | `entra-group` (Azure AD), `oidc-group` | `static-user` |
+| **Secret Store** | `SecretSource` | `external-secrets`, `kubernetes` | `env` |
+
+---
+
+## Repository Layout
+
+```
+.
+├── charts/
+│   └── environment/           # Production Helm chart (web, internal, batch blueprints)
+│       ├── Chart.yaml
+│       ├── values.schema.json # Single contract between Agent, Git, and Helm
+│       ├── files/platform.yaml# Generated platform governance settings
+│       └── templates/         # Baseline + profile-specific workload manifests
+├── policies/                  # Kyverno policies (registry allowlist, TTL cleanup, PSA)
+├── gitops/                    # ArgoCD AppProject and ApplicationSet configurations
+├── agent/                     # Standalone parameter extraction library & eval harness
+├── adapters/                  # Pluggable vendor integrations (Git, Notify, Identity)
+├── n8n/                       # Orchestration workflows (Webhook intake, PR creation)
+├── scripts/                   # Setup wizard, doctor preflight, platform rendering
+├── docs/                      # Architecture Decision Records (ADRs) & SRE runbooks
+├── devaiportal.config.yaml    # Non-secret environment configuration
+└── Makefile                   # Unified operator entrypoints
+```
+
+---
 
 ## Quickstart
 
-```bash
-# 1. Clone
-git clone <repo-url> && cd devaiportal
+### Prerequisites
+* Docker Engine 24+
+* `kubectl` 1.30+
+* Helm 3.16+
+* Node.js 20+
+* `make`
 
-# 2. Install dependencies
+### Installation & Preflight
+```bash
+# 1. Clone repository
+git clone https://github.com/enterprise-org/devaiportal.git
+cd devaiportal
+
+# 2. Install platform dependencies
 make deps
 
-# 3. Interactive setup (generates config and .env)
+# 3. Interactive environment configuration
 make setup
 
-# 4. Verify everything
+# 4. Run preflight doctor (verifies adapters, credentials, and cluster health)
 make doctor
-
-# 5. Bootstrap cluster with ArgoCD, Kyverno, n8n
-make bootstrap
-
-# 6. Or run the full demo (kind cluster + everything)
-make demo
 ```
 
-## Demo Mode (zero credentials)
-
+### Running Test Suites
 ```bash
-make demo
+# Run unit, schema, and adapter contract tests
+make test
 ```
 
-This creates a kind cluster, installs all components with mock/local adapters, and submits a sample request. No API keys or external services required.
+---
 
-## Configuration
+## Production Deployment (Azure & AKS Reference)
 
-- `devaiportal.config.yaml` — non-secret choices (adapter selection, cluster, quotas, TTL)
-- `.env` — secrets only (API keys, tokens, webhooks)
-- `devaiportal.config.schema.json` — JSON Schema for config validation
+1. **Target Cluster:** Configure `devaiportal.config.yaml` to point to your AKS cluster context (`aks-devaiportal-prod`).
+2. **Credentials:** Set up `.env` with Azure Service Principal credentials:
+   ```bash
+   AZURE_OPENAI_ENDPOINT=https://<resource>.openai.azure.com/
+   AZURE_OPENAI_API_KEY=<token>
+   AZURE_OPENAI_DEPLOYMENT=gpt-4o
+   ENTRA_TENANT_ID=<tenant-id>
+   ENTRA_CLIENT_ID=<client-id>
+   ENTRA_CLIENT_SECRET=<client-secret>
+   ```
+3. **Bootstrap GitOps Engine:**
+   ```bash
+   make bootstrap
+   ```
 
-See `.env.example` for all variables with documentation on where to obtain each credential and its minimum required scopes.
+---
 
-## Architecture
+## Testing & Quality Assurance
 
-```
-Developer → Chat/Web → n8n (orchestrator)
-                         ├─ LLM Agent → structured parameters
-                         ├─ Git PR → environments/<name>/values.yaml
-                         ├─ Notifier → Teams/Slack/Email/Console
-                         └─ Identity → RBAC group resolution
+* **Zero-Trust Contract Testing:** Every adapter is verified against contract suites ensuring interchangeable behavior.
+* **Deterministic Evaluation:** The agent includes an evaluation harness testing accuracy against realistic developer queries, schema validity, and prompt-injection resilience.
+* **Schema Conformance:** Invalid configuration halts immediately via pre-commit validation.
 
-ArgoCD (ApplicationSet) ← watches Git → Kubernetes
-Kyverno ← enforces policy, cleans up expired namespaces
-```
-
-## Adapter Pattern
-
-Every external dependency is behind an interface. Swap providers by changing one config key:
-
-| Concern   | Config Key           | Options                                      |
-|-----------|---------------------|-----------------------------------------------|
-| LLM       | `adapters.llm`      | `mock`, `openai`, `azure-openai`, `anthropic`, `ollama` |
-| Git       | `adapters.git`      | `gitea`, `github`, `gitlab`                   |
-| Notifier  | `adapters.notifier` | `console`, `slack`, `teams`, `email`          |
-| Identity  | `adapters.identity` | `static-user`, `entra-group`, `oidc-group`    |
-| Secrets   | `adapters.secrets`  | `env`, `kubernetes`, `external-secrets`       |
-
-## Make Targets
-
-```
-make setup           Interactive wizard — generates config and .env
-make doctor          Preflight checks — one real call per adapter
-make deps            Install Node.js dependencies
-make test            Run all tests
-make bootstrap       Install ArgoCD, Kyverno, n8n on cluster
-make demo            Full demo: kind + bootstrap + sample request
-make teardown        Delete kind cluster
-make help            Show all targets
-```
+---
 
 ## Documentation
 
-- `docs/assumptions.md` — decisions made without explicit input
-- `docs/adr/` — architectural decision records
-- `docs/credentials.md` — how to obtain each credential with minimum scopes
-- `docs/operator-runbook.md` — operations guide
-
-## License
-
-Internal platform — see your organization's licensing policy.
+* [Architecture Decision Records (ADRs)](docs/adr/)
+* [Operator Runbook](docs/operator-runbook.md)
+* [Credentials & Minimum IAM Scopes](docs/credentials.md)
+* [Architecture Assumptions](docs/assumptions.md)

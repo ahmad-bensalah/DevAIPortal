@@ -1,25 +1,26 @@
-# DevAIPortal Configuration
-# Copy to devaiportal.config.yaml and edit.
+# DevAIPortal Configuration — Production Reference (Azure & Enterprise GitOps)
 # Schema: devaiportal.config.schema.json
-# Secrets go in .env, not here.
+# Secrets are managed via environment variables or secret stores (.env / Key Vault / External Secrets).
 
 adapters:
-  llm: mock                # azure-openai | openai | anthropic | ollama | mock
-  git: gitea               # github | gitlab | gitea
-  notifier: console         # teams | slack | email | console
-  identity: static-user     # entra-group | oidc-group | static-user
+  llm: azure-openai         # azure-openai | openai | anthropic | ollama | mock
+  git: github               # github | gitlab | gitea
+  notifier: teams           # teams | slack | email | console
+  identity: entra-group     # entra-group (Azure AD) | oidc-group | static-user
   secrets: env              # env | kubernetes | external-secrets
 
 cluster:
-  context: kind-devaiportal    # kubectl context pointing at target cluster
-  baseDomain: dev.local      # base domain for Ingress hosts (<name>.dev.local)
-  ingressClass: nginx        # ingress class installed in cluster
+  context: aks-devaiportal-prod  # kubectl context pointing to target cluster (AKS)
+  baseDomain: dev.internal.company.com # Ingress routing domain (<name>.dev.internal.company.com)
+  ingressClass: nginx
   ingressNamespace: ingress-nginx
-  # clusterIssuer: letsencrypt-staging  # uncomment for TLS
+  clusterIssuer: letsencrypt-prod # cert-manager ClusterIssuer for TLS certificates
 
 namespaces:
   prefix: env
   allowedRegistries:
+    - mcr.microsoft.com
+    - mycompany.azurecr.io
     - docker.io
     - ghcr.io
     - registry.k8s.io
@@ -43,15 +44,15 @@ sizes:
     pods: 30
 
 approval:
-  requireAboveSize: medium   # large and above need approval
-  requireAboveTtlDays: 7     # TTL > 7 days needs approval
+  requireAboveSize: medium   # Environments requesting large quotas require approval
+  requireAboveTtlDays: 7     # Environments exceeding 7-day TTL require approval
 
 llm:
-  model: mock
+  model: gpt-4o
   temperature: 0
   maxTokens: 2048
 
 git:
-  repo: devaiportal/devaiportal
+  repo: enterprise-org/devaiportal-gitops
   baseBranch: main
-  url: http://localhost:3000  # gitea URL for local demo
+  url: https://github.com
