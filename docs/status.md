@@ -15,7 +15,7 @@
 | **Helm Blueprint: Internal**| Yes (`charts/environment`) | Yes | Yes | **VERIFIED** | `helm template test charts/environment -f charts/environment/fixtures/valid/internal-service.yaml` (clean render). |
 | **Helm Blueprint: Batch** | Yes (`charts/environment`) | Yes | Yes | **VERIFIED** | `helm template test charts/environment -f charts/environment/fixtures/valid/batch.yaml` (clean render). |
 | **Helm Schema Guardrails** | Yes (`values.schema.json`) | Yes | Yes | **VERIFIED** | `npx vitest run charts/environment/chart.test.ts` (5/5 passed, rejects invalid fixtures). |
-| **Kyverno Policies (Code)** | Yes (`policies/`) | Yes | Yes | **VERIFIED** | `npx vitest run policies/policies.test.ts` (12/12 passed, 5 ClusterPolicies + 1 ClusterCleanupPolicy + 6 CLI suites incl. cleanup-expired-environments). |
+| **Kyverno Policies (Code)** | Yes (`policies/`) | Yes | Yes | **VERIFIED** | `npx vitest run policies/policies.test.ts` (12/12 passed, 5 ClusterPolicies + 1 ClusterCleanupPolicy via vitest TTL logic + 5 CLI suites). |
 | **ArgoCD GitOps Definitions** | Yes (`gitops/`) | Yes | Yes | **VERIFIED** | `gitops/appproject.yaml`, `gitops/applicationset.yaml` validated against schema syntax. |
 | **LLM Provider Adapters** | Yes (Azure, OpenAI, Claude, Ollama, Mock) | Yes (`agent/src/providers/`) | Yes | **VERIFIED** | `npx vitest run agent/tests/llm-provider.contract.test.ts` (11/11 passed). |
 | **Agent Eval Harness** | Yes (Accuracy, schema, injections) | Yes (`agent/eval/`) | Yes | **VERIFIED** | `npx vitest run agent/eval/eval.test.ts` (64/64 cases passed, >85% accuracy). |

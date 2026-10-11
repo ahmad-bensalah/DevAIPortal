@@ -164,7 +164,7 @@ make test
 | **All tests** | `make test` | 11 files, 87 tests passing |
 | **Config schema** | `npx vitest run config/` | 13/13 |
 | **Helm guardrails** | `npx vitest run charts/` | 12/12 (3 valid renders, 7 invalid rejected, 3 golden snapshots) |
-| **Kyverno policies** | `npx vitest run policies/` | 12/12 (5 admission policies + cleanup TTL logic + 6 CLI suites) |
+| **Kyverno policies** | `npx vitest run policies/` | 12/12 (5 admission policies + cleanup TTL logic + 5 CLI suites) |
 | **GitOps rendering** | `npx vitest run gitops/` | 3/3 (all env dirs rendered) |
 | **Adapter contracts** | `npx vitest run adapters/` | 30/30 (Git: GitHub/GitLab/Gitea; Notify: Console/Teams/Slack/Email; Identity: Static/OIDC) |
 | **Agent eval (Mock)** | `npx vitest run agent/` | 98.4% accuracy, 100% adversarial refusal (64 cases) |

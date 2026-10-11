@@ -126,6 +126,9 @@ describe('Kyverno Policy Guardrails Structural Verification', () => {
     });
   });
 
+  // Note: cleanup-expired-environments is a ClusterCleanupPolicy, which the
+  // Kyverno CLI `test` command does not support. Its TTL logic is verified
+  // by the vitest unit tests above (shouldCleanupNamespace helper).
   it('provides kyverno cli test suites for policy verification', () => {
     const tests = [
       'tests/disallow-latest-tag/kyverno-test.yaml',
@@ -133,7 +136,6 @@ describe('Kyverno Policy Guardrails Structural Verification', () => {
       'tests/require-run-as-non-root/kyverno-test.yaml',
       'tests/require-resource-requests-limits/kyverno-test.yaml',
       'tests/require-mandatory-labels/kyverno-test.yaml',
-      'tests/cleanup-expired-environments/kyverno-test.yaml',
     ];
     for (const testPath of tests) {
       expect(existsSync(resolve(POLICIES_DIR, testPath))).toBe(true);
