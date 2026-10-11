@@ -133,6 +133,7 @@ describe('Kyverno Policy Guardrails Structural Verification', () => {
       'tests/require-run-as-non-root/kyverno-test.yaml',
       'tests/require-resource-requests-limits/kyverno-test.yaml',
       'tests/require-mandatory-labels/kyverno-test.yaml',
+      'tests/cleanup-expired-environments/kyverno-test.yaml',
     ];
     for (const testPath of tests) {
       expect(existsSync(resolve(POLICIES_DIR, testPath))).toBe(true);
