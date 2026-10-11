@@ -6,7 +6,7 @@
 [![ArgoCD](https://img.shields.io/badge/GitOps-ArgoCD-ef6b48.svg?logo=argo&logoColor=white)](https://argoproj.github.io/cd/)
 [![Kyverno](https://img.shields.io/badge/Policy-Kyverno-009688.svg?logo=kyverno&logoColor=white)](https://kyverno.io/)
 
-> **Production-grade Internal Developer Platform (IDP)** delivering conversational self-service ephemeral Kubernetes environments via GitOps, deterministic blueprints, and declarative policy enforcement.
+> **Internal Developer Platform (IDP)** delivering conversational self-service ephemeral Kubernetes environments via GitOps, deterministic blueprints, and declarative policy enforcement.
 
 ---
 
@@ -161,10 +161,10 @@ make test
 
 | Suite | Command | Status |
 | :--- | :--- | :--- |
-| **All tests** | `make test` | 11 files, 83 tests passing |
+| **All tests** | `make test` | 11 files, 87 tests passing |
 | **Config schema** | `npx vitest run config/` | 13/13 |
 | **Helm guardrails** | `npx vitest run charts/` | 12/12 (3 valid renders, 7 invalid rejected, 3 golden snapshots) |
-| **Kyverno policies** | `npx vitest run policies/` | 8/8 (5 admission policies + cleanup policy + CLI suites) |
+| **Kyverno policies** | `npx vitest run policies/` | 12/12 (5 admission policies + cleanup TTL logic + 6 CLI suites) |
 | **GitOps rendering** | `npx vitest run gitops/` | 3/3 (all env dirs rendered) |
 | **Adapter contracts** | `npx vitest run adapters/` | 30/30 (Git: GitHub/GitLab/Gitea; Notify: Console/Teams/Slack/Email; Identity: Static/OIDC) |
 | **Agent eval (Mock)** | `npx vitest run agent/` | 98.4% accuracy, 100% adversarial refusal (64 cases) |
