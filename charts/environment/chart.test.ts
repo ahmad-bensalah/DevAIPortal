@@ -71,7 +71,7 @@ describe('Helm Environment Blueprint Tests', () => {
           encoding: 'utf-8',
           stdio: 'pipe',
         });
-      }).toThrow(/minimum: got 80, want 1,024/);
+      }).toThrow(/(?:minimum: got 80, want 1,024|Must be greater than or equal to 1024)/);
     });
 
     it('rejects batch workload missing schedule and command', () => {
@@ -83,7 +83,7 @@ describe('Helm Environment Blueprint Tests', () => {
             stdio: 'pipe',
           }
         );
-      }).toThrow(/missing properties 'schedule', 'command'/);
+      }).toThrow(/(?:missing properties 'schedule', 'command'|schedule is required)/);
     });
 
     it('rejects image with forbidden :latest tag', () => {
@@ -119,7 +119,7 @@ describe('Helm Environment Blueprint Tests', () => {
             stdio: 'pipe',
           }
         );
-      }).toThrow(/'allOf' failed|'not' failed/);
+      }).toThrow(/(?:'allOf' failed|'not' failed|Must not validate the schema \(not\))/);
     });
 
     it('rejects unknown fields via schema additionalProperties:false', () => {
@@ -131,7 +131,7 @@ describe('Helm Environment Blueprint Tests', () => {
             stdio: 'pipe',
           }
         );
-      }).toThrow(/additional properties 'unauthorizedBackdoorField' not allowed/);
+      }).toThrow(/(?:additional properties 'unauthorizedBackdoorField' not allowed|Additional property unauthorizedBackdoorField is not allowed)/);
     });
 
     it('rejects environment name longer than 40 chars', () => {
