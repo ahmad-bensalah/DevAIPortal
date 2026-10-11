@@ -5,3 +5,5 @@ dist/
 coverage/
 .nyc_output/
 __test_config_tmp__/
+tools/
+bin/

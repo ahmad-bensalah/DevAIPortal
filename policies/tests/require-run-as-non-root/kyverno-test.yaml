@@ -3,7 +3,7 @@ kind: Test
 metadata:
   name: test-require-run-as-non-root
 policies:
-  - ../require-run-as-non-root.yaml
+  - ../../require-run-as-non-root.yaml
 resources:
   - resource.yaml
 results:

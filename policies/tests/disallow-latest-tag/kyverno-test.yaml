@@ -1,9 +1,6 @@
-apiVersion: cli.kyverno.io/v1alpha1
-kind: Test
-metadata:
-  name: test-disallow-latest-tag
+name: test-disallow-latest-tag
 policies:
-  - ../disallow-latest-tag.yaml
+  - ../../disallow-latest-tag.yaml
 resources:
   - resource.yaml
 results:

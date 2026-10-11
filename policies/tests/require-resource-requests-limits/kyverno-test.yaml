@@ -3,7 +3,7 @@ kind: Test
 metadata:
   name: test-require-resource-requests-limits
 policies:
-  - ../require-resource-requests-limits.yaml
+  - ../../require-resource-requests-limits.yaml
 resources:
   - resource.yaml
 results:

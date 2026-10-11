@@ -3,7 +3,7 @@ kind: Test
 metadata:
   name: test-require-mandatory-labels
 policies:
-  - ../require-mandatory-labels.yaml
+  - ../../require-mandatory-labels.yaml
 resources:
   - resource.yaml
 results:
