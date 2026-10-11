@@ -20,11 +20,12 @@ spec:
               kinds:
                 - Pod
       validate:
-        message: "Running as root user is prohibited. Set securityContext.runAsNonRoot to true."
-        pattern:
-          spec:
-            =(securityContext):
-              runAsNonRoot: true
-            containers:
-              - =(securityContext):
-                  =(runAsNonRoot): true
+        message: "Running as root user is prohibited. Set securityContext.runAsNonRoot to true at the pod or container level."
+        anyPattern:
+          - spec:
+              securityContext:
+                runAsNonRoot: true
+          - spec:
+              containers:
+                - securityContext:
+                    runAsNonRoot: true

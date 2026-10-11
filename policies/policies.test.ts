@@ -45,8 +45,8 @@ describe('Kyverno Policy Guardrails Structural Verification', () => {
     expect(policy.spec.validationFailureAction).toBe('Enforce');
     const rule = policy.spec.rules[0];
     expect(rule.name).toBe('check-run-as-non-root');
-    const spec = rule.validate.pattern.spec;
-    expect(spec['=(securityContext)'].runAsNonRoot).toBe(true);
+    expect(rule.validate.anyPattern).toBeDefined();
+    expect(rule.validate.anyPattern[0].spec.securityContext.runAsNonRoot).toBe(true);
   });
 
   it('validates require-resource-requests-limits policy definition', () => {
@@ -71,12 +71,59 @@ describe('Kyverno Policy Guardrails Structural Verification', () => {
     expect(rule.validate.pattern.metadata.labels['devaiportal.io/owner']).toBe('?*');
   });
 
-  it('validates cleanup-expired-environments TTL policy definition', () => {
+  describe('cleanup-expired-environments TTL condition logic', () => {
     const policyPath = resolve(POLICIES_DIR, 'cleanup-expired-environments.yaml');
     const policy = yaml.load(readFileSync(policyPath, 'utf-8')) as any;
-    expect(policy.kind).toBe('ClusterCleanupPolicy');
-    expect(policy.spec.match.any[0].resources.kinds).toContain('Namespace');
-    expect(policy.spec.conditions.all[0].key).toContain('devaiportal.io/expires-at');
+
+    it('validates cleanup-expired-environments TTL policy structure', () => {
+      expect(policy.kind).toBe('ClusterCleanupPolicy');
+      expect(policy.spec.match.any[0].resources.kinds).toContain('Namespace');
+      expect(policy.spec.conditions.all[0].key).toContain('devaiportal.io/expires-at');
+    });
+
+    // Helper implementing the Kyverno condition evaluation logic
+    function shouldCleanupNamespace(ns: { labels?: Record<string, string>; annotations?: Record<string, string> }, now: Date): boolean {
+      if (ns.labels?.['devaiportal.io/managed'] !== 'true') return false;
+      const expiresAtStr = ns.annotations?.['devaiportal.io/expires-at'];
+      if (!expiresAtStr) return false;
+      const expiresAt = new Date(expiresAtStr);
+      if (isNaN(expiresAt.getTime())) return false;
+      // time_diff(now, expiresAt) < 0s means now > expiresAt (expired)
+      return now.getTime() > expiresAt.getTime();
+    }
+
+    const now = new Date('2026-10-11T12:00:00Z');
+
+    it('matches and flags expired namespace for cleanup', () => {
+      const expiredNs = {
+        labels: { 'devaiportal.io/managed': 'true' },
+        annotations: { 'devaiportal.io/expires-at': '2026-10-10T12:00:00Z' },
+      };
+      expect(shouldCleanupNamespace(expiredNs, now)).toBe(true);
+    });
+
+    it('does not cleanup namespace whose TTL is still in the future', () => {
+      const activeNs = {
+        labels: { 'devaiportal.io/managed': 'true' },
+        annotations: { 'devaiportal.io/expires-at': '2026-10-15T12:00:00Z' },
+      };
+      expect(shouldCleanupNamespace(activeNs, now)).toBe(false);
+    });
+
+    it('does not cleanup namespace when expires-at annotation is missing', () => {
+      const missingAnnotationNs = {
+        labels: { 'devaiportal.io/managed': 'true' },
+      };
+      expect(shouldCleanupNamespace(missingAnnotationNs, now)).toBe(false);
+    });
+
+    it('ignores namespaces not managed by devaiportal', () => {
+      const unmanagedNs = {
+        labels: { 'devaiportal.io/managed': 'false' },
+        annotations: { 'devaiportal.io/expires-at': '2026-10-10T12:00:00Z' },
+      };
+      expect(shouldCleanupNamespace(unmanagedNs, now)).toBe(false);
+    });
   });
 
   it('provides kyverno cli test suites for policy verification', () => {
