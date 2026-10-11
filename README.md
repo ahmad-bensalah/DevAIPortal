@@ -161,16 +161,17 @@ make test
 
 | Suite | Command | Status |
 | :--- | :--- | :--- |
-| **All tests** | `make test` | 10 files, 63 tests passing |
+| **All tests** | `make test` | 11 files, 83 tests passing |
 | **Config schema** | `npx vitest run config/` | 13/13 |
 | **Helm guardrails** | `npx vitest run charts/` | 12/12 (3 valid renders, 7 invalid rejected, 3 golden snapshots) |
-| **Kyverno policies** | `npx vitest run policies/` | 5/5 (structural) |
+| **Kyverno policies** | `npx vitest run policies/` | 8/8 (5 admission policies + cleanup policy + CLI suites) |
 | **GitOps rendering** | `npx vitest run gitops/` | 3/3 (all env dirs rendered) |
-| **Adapter contracts** | `npx vitest run adapters/` | 13/13 |
+| **Adapter contracts** | `npx vitest run adapters/` | 30/30 (Git: GitHub/GitLab/Gitea; Notify: Console/Teams/Slack/Email; Identity: Static/OIDC) |
 | **Agent eval (Mock)** | `npx vitest run agent/` | 98.4% accuracy, 100% adversarial refusal (64 cases) |
 | **n8n workflow lint** | `npx vitest run n8n/` | 4/4 |
 | **ADR standard** | `npx tsx scripts/lint-adrs.ts` | All 4 ADRs pass |
 
+For an end-to-end lifecycle walkthrough see [`docs/demo.md`](docs/demo.md).  
 For detailed evaluation metrics see [`docs/eval-results.md`](docs/eval-results.md).  
 For honest verification status see [`docs/status.md`](docs/status.md).
 
@@ -178,6 +179,7 @@ For honest verification status see [`docs/status.md`](docs/status.md).
 
 ## Documentation
 
+* [End-to-End Walkthrough & Demo](docs/demo.md)
 * [Architecture Decision Records (ADRs)](docs/adr/)
 * [Threat Model](docs/threat-model.md)
 * [Limitations](docs/limitations.md)

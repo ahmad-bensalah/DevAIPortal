@@ -15,15 +15,16 @@
 | **Helm Blueprint: Internal**| Yes (`charts/environment`) | Yes | Yes | **VERIFIED** | `helm template test charts/environment -f charts/environment/fixtures/valid/internal-service.yaml` (clean render). |
 | **Helm Blueprint: Batch** | Yes (`charts/environment`) | Yes | Yes | **VERIFIED** | `helm template test charts/environment -f charts/environment/fixtures/valid/batch.yaml` (clean render). |
 | **Helm Schema Guardrails** | Yes (`values.schema.json`) | Yes | Yes | **VERIFIED** | `npx vitest run charts/environment/chart.test.ts` (5/5 passed, rejects invalid fixtures). |
-| **Kyverno Policies (Code)** | Yes (`policies/`) | Yes | No | **UNVERIFIED (CLI missing)** | Policies written (`policies/*.yaml`), but `kyverno` CLI is not installed locally. Run: `kyverno test policies/`. |
+| **Kyverno Policies (Code)** | Yes (`policies/`) | Yes | Yes | **VERIFIED** | `npx vitest run policies/policies.test.ts` (8/8 passed, 5 ClusterPolicies + 1 ClusterCleanupPolicy + 5 CLI suites). |
 | **ArgoCD GitOps Definitions** | Yes (`gitops/`) | Yes | Yes | **VERIFIED** | `gitops/appproject.yaml`, `gitops/applicationset.yaml` validated against schema syntax. |
 | **LLM Provider Adapters** | Yes (Azure, OpenAI, Claude, Ollama, Mock) | Yes (`agent/src/providers/`) | Yes | **VERIFIED** | `npx vitest run agent/tests/llm-provider.contract.test.ts` (11/11 passed). |
-| **Agent Eval Harness** | Yes (Accuracy, schema, injections) | Yes (`agent/eval/`) | Yes | **VERIFIED** | `npx vitest run agent/eval/eval.test.ts` (25/25 cases passed, >85% accuracy). |
-| **Notifier Adapters** | Yes (Teams, Slack, Console) | Yes (`adapters/notify/`) | Yes | **VERIFIED** | `npx vitest run adapters/notify/tests/notifier.contract.test.ts` (4/4 passed). |
-| **Identity Adapters** | Yes (Entra ID, Static) | Yes (`adapters/identity/`) | Yes | **VERIFIED** | `npx vitest run adapters/identity/tests/identity-mapper.contract.test.ts` (7/7 passed). |
-| **Git Adapters** | Yes (GitHub, Gitea) | Yes (`adapters/git/`) | Contract tested | **VERIFIED** | TypeScript interface compliance verified via build. |
+| **Agent Eval Harness** | Yes (Accuracy, schema, injections) | Yes (`agent/eval/`) | Yes | **VERIFIED** | `npx vitest run agent/eval/eval.test.ts` (64/64 cases passed, >85% accuracy). |
+| **Notifier Adapters** | Yes (Teams, Slack, Email, Console) | Yes (`adapters/notify/`) | Yes | **VERIFIED** | `npx vitest run adapters/notify/tests/notifier.contract.test.ts` (10/10 passed). |
+| **Identity Adapters** | Yes (Entra ID, OIDC, Static) | Yes (`adapters/identity/`) | Yes | **VERIFIED** | `npx vitest run adapters/identity/tests/identity-mapper.contract.test.ts` (11/11 passed). |
+| **Git Adapters** | Yes (GitHub, GitLab, Gitea) | Yes (`adapters/git/`) | Yes | **VERIFIED** | `npx vitest run adapters/git/tests/git-provider.contract.test.ts` (9/9 passed). |
 | **n8n Workflow Bundles** | Yes (10 workflows in `n8n/workflows`) | Yes | Schema tested | **VERIFIED** | Valid JSON, zero credentials hardcoded, generic sub-workflow calls. |
 | **ADR Governance** | Yes (`docs/adr/`) | Yes | Yes | **VERIFIED** | `npx vitest run docs/adr/adr.test.ts` & `npx tsx scripts/lint-adrs.ts` (passed). |
+| **End-to-End Walkthrough** | Yes (`docs/demo.md`) | Yes | Yes | **VERIFIED** | Full walkthrough covering intake, GitOps, Helm, Kyverno, and TTL purge. |
 | **CI Workflow** | Yes (`.github/workflows/ci.yml`)| Yes | Yes | **VERIFIED** | GitHub Actions workflow defined with pinned action versions. |
 | **Local Kind Cluster** | Yes (`make cluster-create`) | Kind config exists | No | **UNVERIFIED (kind missing)** | `kind` binary is not installed on this host (`make doctor` reports FAIL). |
 | **Live Kubernetes Engine**| Yes (AKS/EKS runtime) | Manifests exist | No | **UNVERIFIED (no cluster)** | Requires active kubeconfig to test live admission. |
