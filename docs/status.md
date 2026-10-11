@@ -15,7 +15,7 @@
 | **Helm Blueprint: Internal**| Yes (`charts/environment`) | Yes | Yes | **VERIFIED** | `helm template test charts/environment -f charts/environment/fixtures/valid/internal-service.yaml` (clean render). |
 | **Helm Blueprint: Batch** | Yes (`charts/environment`) | Yes | Yes | **VERIFIED** | `helm template test charts/environment -f charts/environment/fixtures/valid/batch.yaml` (clean render). |
 | **Helm Schema Guardrails** | Yes (`values.schema.json`) | Yes | Yes | **VERIFIED** | `npx vitest run charts/environment/chart.test.ts` (5/5 passed, rejects invalid fixtures). |
-| **Kyverno Policies (Code)** | Yes (`policies/`) | Yes | Yes | **VERIFIED** | `npx vitest run policies/policies.test.ts` (8/8 passed, 5 ClusterPolicies + 1 ClusterCleanupPolicy + 5 CLI suites). |
+| **Kyverno Policies (Code)** | Yes (`policies/`) | Yes | Yes | **VERIFIED** | `npx vitest run policies/policies.test.ts` (12/12 passed, 5 ClusterPolicies + 1 ClusterCleanupPolicy + 6 CLI suites incl. cleanup-expired-environments). |
 | **ArgoCD GitOps Definitions** | Yes (`gitops/`) | Yes | Yes | **VERIFIED** | `gitops/appproject.yaml`, `gitops/applicationset.yaml` validated against schema syntax. |
 | **LLM Provider Adapters** | Yes (Azure, OpenAI, Claude, Ollama, Mock) | Yes (`agent/src/providers/`) | Yes | **VERIFIED** | `npx vitest run agent/tests/llm-provider.contract.test.ts` (11/11 passed). |
 | **Agent Eval Harness** | Yes (Accuracy, schema, injections) | Yes (`agent/eval/`) | Yes | **VERIFIED** | `npx vitest run agent/eval/eval.test.ts` (64/64 cases passed, >85% accuracy). |
@@ -26,7 +26,7 @@
 | **ADR Governance** | Yes (`docs/adr/`) | Yes | Yes | **VERIFIED** | `npx vitest run docs/adr/adr.test.ts` & `npx tsx scripts/lint-adrs.ts` (passed). |
 | **End-to-End Walkthrough** | Yes (`docs/demo.md`) | Yes | Yes | **VERIFIED** | Full walkthrough covering intake, GitOps, Helm, Kyverno, and TTL purge. |
 | **CI Workflow** | Yes (`.github/workflows/ci.yml`)| Yes | Yes | **VERIFIED** | GitHub Actions workflow defined with pinned action versions. |
-| **Local Kind Cluster** | Yes (`make cluster-create`) | Kind config exists | Yes | **VERIFIED** | `make demo` (Kind v0.24.0, Kubernetes v1.31.0 cluster `kind-devaiportal` running). |
+| **Local Kind Cluster** | Yes (`make cluster-create`) | Kind config exists | Partial | **PARTIAL** | `make demo` creates a Kind cluster but `bootstrap` and `sample request` steps are stubbed (`TODO`). No live admission or ArgoCD sync is exercised locally. |
 | **Live Kubernetes Engine**| Yes (AKS/EKS runtime) | Manifests exist | No | **UNVERIFIED (no cluster)** | Requires active cloud kubeconfig (e.g. `aks-devaiportal-prod`) to test live admission. |
 
 ---
@@ -37,9 +37,9 @@
 ```
 npx vitest run
 
-Test Files  7 passed (7)
-     Tests  42 passed (42)
-  Duration  825ms
+Test Files  11 passed (11)
+     Tests  87 passed (87)
+  Duration  1.14s
 ```
 
 ### `make doctor`

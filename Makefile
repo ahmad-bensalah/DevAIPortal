@@ -82,8 +82,9 @@ cluster-create: ## Create kind cluster
 
 .PHONY: bootstrap
 bootstrap: cluster-create ## Idempotent: install ArgoCD, Kyverno, n8n, import workflows
-	@echo "TODO: implement in steps 2-5"
 	@echo "Cluster context: kind-$(KIND_CLUSTER)"
+	@echo "[PARTIAL] ArgoCD, Kyverno, and n8n helm installs are not yet automated."
+	@echo "          See docs/operator-runbook.md for manual bootstrap steps."
 
 .PHONY: demo
 demo: ## Full demo: kind + bootstrap + sample request
@@ -96,7 +97,8 @@ demo: ## Full demo: kind + bootstrap + sample request
 	@$(MAKE) doctor || true
 	@echo ""
 	@echo "Demo cluster ready. Context: kind-$(KIND_CLUSTER)"
-	@echo "TODO: bootstrap + sample request (steps 2-5)"
+	@echo "[PARTIAL] Bootstrap and sample request are not yet automated."
+	@echo "          Run individual Makefile targets or follow docs/demo.md."
 
 .PHONY: teardown
 teardown: ## Delete kind cluster and clean up
