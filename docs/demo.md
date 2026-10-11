@@ -45,20 +45,68 @@ Run the preflight health check to verify toolchains and configuration integrity:
 make doctor
 ```
 
-**Expected Diagnostic Output:**
-```
-[PREFLIGHT] Checking container runtime (docker/podman)... OK
-[PREFLIGHT] Checking Kubernetes toolchain (kubectl, helm, kind)... OK
-[PREFLIGHT] Checking Node.js environment (v20+)... OK (v20.x)
-[PREFLIGHT] Verifying Adapter Contracts & Config Schema... OK
-All preflight checks PASSED.
+```bash
+# 1. Run environment preflight doctor
+make doctor
 ```
 
-Spin up the local Kind test cluster with Ingress and ArgoCD:
+**Live Execution Output:**
+```
+DevAIPortal — Preflight Check
+
+Prerequisites
+  PASS docker — Docker version 29.8.2, build 7fc2dff
+  PASS kubectl — installed
+  PASS helm — v3.21.0+ge0878d4
+  PASS kind — kind version 0.24.0
+  PASS make — GNU Make 4.3
+  FAIL node v18.19.1 — requires >= v20. Install via nvm or .tool-versions.
+
+Configuration
+  PASS Config file exists: devaiportal.config.yaml
+  SKIP .env file missing — only needed if using non-mock adapters.
+  PASS Config schema validation
+
+Adapters
+  FAIL LLM adapter: azure-openai — AZURE_OPENAI_API_KEY or AZURE_OPENAI_ENDPOINT not set.
+  FAIL Git adapter: github — GIT_TOKEN not set in .env
+  FAIL Notifier: teams — TEAMS_WEBHOOK_URL not set in .env
+  FAIL Identity: entra-group — ENTRA_TENANT_ID, ENTRA_CLIENT_ID, or ENTRA_CLIENT_SECRET missing
+
+Kubernetes
+  SKIP Cluster not reachable: aks-devaiportal-prod (expected before make bootstrap)
+
+Summary
+  7 passed, 5 failed, 2 skipped
+```
 
 ```bash
-# 2. Provision local Kind cluster with dual ingress port mappings
-make cluster-up
+# 2. Provision local Kind test cluster
+make demo
+```
+
+**Live Execution Output:**
+```
+──── DevAIPortal Demo Mode ────
+Creating cluster "devaiportal" ...
+ • Ensuring node image (kindest/node:v1.31.0) 🖼  ...
+ ✓ Ensuring node image (kindest/node:v1.31.0) 🖼
+ • Preparing nodes 📦   ...
+ ✓ Preparing nodes 📦 
+ • Writing configuration 📜  ...
+ ✓ Writing configuration 📜
+ • Starting control-plane 🕹️  ...
+ ✓ Starting control-plane 🕹️
+ • Installing CNI 🔌  ...
+ ✓ Installing CNI 🔌
+ • Installing StorageClass 💾  ...
+ ✓ Installing StorageClass 💾
+ • Waiting ≤ 1m0s for control-plane = Ready ⏳  ...
+ ✓ Waiting ≤ 1m0s for control-plane = Ready ⏳
+ • Ready after 18s 💚
+Set kubectl context to "kind-devaiportal"
+
+Demo cluster ready. Context: kind-devaiportal
 ```
 
 ---

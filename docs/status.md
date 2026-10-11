@@ -26,8 +26,8 @@
 | **ADR Governance** | Yes (`docs/adr/`) | Yes | Yes | **VERIFIED** | `npx vitest run docs/adr/adr.test.ts` & `npx tsx scripts/lint-adrs.ts` (passed). |
 | **End-to-End Walkthrough** | Yes (`docs/demo.md`) | Yes | Yes | **VERIFIED** | Full walkthrough covering intake, GitOps, Helm, Kyverno, and TTL purge. |
 | **CI Workflow** | Yes (`.github/workflows/ci.yml`)| Yes | Yes | **VERIFIED** | GitHub Actions workflow defined with pinned action versions. |
-| **Local Kind Cluster** | Yes (`make cluster-create`) | Kind config exists | No | **UNVERIFIED (kind missing)** | `kind` binary is not installed on this host (`make doctor` reports FAIL). |
-| **Live Kubernetes Engine**| Yes (AKS/EKS runtime) | Manifests exist | No | **UNVERIFIED (no cluster)** | Requires active kubeconfig to test live admission. |
+| **Local Kind Cluster** | Yes (`make cluster-create`) | Kind config exists | Yes | **VERIFIED** | `make demo` (Kind v0.24.0, Kubernetes v1.31.0 cluster `kind-devaiportal` running). |
+| **Live Kubernetes Engine**| Yes (AKS/EKS runtime) | Manifests exist | No | **UNVERIFIED (no cluster)** | Requires active cloud kubeconfig (e.g. `aks-devaiportal-prod`) to test live admission. |
 
 ---
 
